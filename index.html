@@ -1,0 +1,1227 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>GMC 2026 Memory Challenge</title>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Inter", "Segoe UI", Arial, sans-serif;
+        }
+
+        :root {
+            --gold: #f59e0b;
+            --gold-light: #fef3c7;
+            --gold-dark: #d97706;
+            --orange: #ea580c;
+            --white: #ffffff;
+            --text: #1e293b;
+            --text-muted: #64748b;
+            --text-light: #94a3b8;
+            --bg: #f8fafc;
+            --bg-card: #ffffff;
+            --border: #e2e8f0;
+            --border-light: #f1f5f9;
+            --green: #10b981;
+            --red: #ef4444;
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
+            --shadow: 0 4px 16px rgba(0,0,0,0.08), 0 2px 6px rgba(0,0,0,0.05);
+            --shadow-lg: 0 16px 48px rgba(0,0,0,0.10), 0 4px 14px rgba(0,0,0,0.06);
+        }
+
+        body {
+            min-height: 100vh;
+            color: var(--text);
+            overflow-x: hidden;
+            background: var(--bg);
+        }
+
+        .bg-shapes span {
+            position: fixed;
+            width: 300px;
+            height: 300px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(245, 158, 11, 0.07), transparent 70%);
+            z-index: -2;
+        }
+
+        .bg-shapes span:nth-child(1) { top: -80px; left: -80px; }
+        .bg-shapes span:nth-child(2) { top: 40%; right: -120px; width: 400px; height: 400px; background: radial-gradient(circle, rgba(99, 102, 241, 0.06), transparent 70%); }
+        .bg-shapes span:nth-child(3) { bottom: 10%; left: 5%; background: radial-gradient(circle, rgba(16, 185, 129, 0.06), transparent 70%); }
+        .bg-shapes span:nth-child(4) { bottom: -100px; right: 10%; width: 350px; height: 350px; }
+
+        .name-screen {
+            position: fixed;
+            inset: 0;
+            z-index: 999;
+            display: grid;
+            place-items: center;
+            padding: 22px;
+            background: rgba(248, 250, 252, 0.92);
+            backdrop-filter: blur(20px);
+        }
+
+        .name-box {
+            width: min(520px, 100%);
+            padding: 42px 38px;
+            border-radius: 28px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow-lg);
+            animation: zoomIn 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+            text-align: center;
+        }
+
+        @keyframes zoomIn {
+            from { opacity: 0; transform: scale(0.94) translateY(16px); }
+            to   { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        .name-box h1 {
+            font-size: 34px;
+            line-height: 1.15;
+            margin-bottom: 10px;
+            color: var(--text);
+        }
+
+        .name-box h1 span {
+            color: var(--gold);
+        }
+
+        .name-box p {
+            color: var(--text-muted);
+            line-height: 1.7;
+            margin-bottom: 26px;
+            font-size: 15px;
+        }
+
+        .name-box input {
+            width: 100%;
+            padding: 14px 18px;
+            border-radius: 14px;
+            border: 1.5px solid var(--border);
+            outline: none;
+            background: var(--bg);
+            color: var(--text);
+            font-size: 16px;
+            margin-bottom: 14px;
+            transition: border-color 0.2s;
+        }
+
+        .name-box input:focus {
+            border-color: var(--gold);
+        }
+
+        .name-box input::placeholder {
+            color: var(--text-light);
+        }
+
+        .app {
+            display: none;
+        }
+
+        .app.show {
+            display: block;
+            animation: fadeIn 0.6s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(14px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        header {
+            padding: 18px 7%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 18px;
+            background: var(--bg-card);
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 1px 0 var(--border), 0 2px 8px rgba(0,0,0,0.04);
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: 800;
+            font-size: 20px;
+            color: var(--text);
+        }
+
+        .logo {
+            width: 44px;
+            height: 44px;
+            display: grid;
+            place-items: center;
+            border-radius: 12px;
+            color: #fff;
+            background: linear-gradient(135deg, var(--gold), var(--orange));
+            box-shadow: 0 4px 12px rgba(245, 158, 11, 0.30);
+            font-weight: 900;
+            font-size: 15px;
+        }
+
+        .lang-box {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .lang-box button {
+            border: 1.5px solid var(--border);
+            background: transparent;
+            color: var(--text-muted);
+            padding: 8px 16px;
+            border-radius: 999px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            transition: 0.2s;
+        }
+
+        .lang-box button.active,
+        .lang-box button:hover {
+            background: var(--gold);
+            border-color: var(--gold);
+            color: #fff;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 10px rgba(245, 158, 11, 0.25);
+        }
+
+        .hero {
+            min-height: calc(100vh - 81px);
+            padding: 60px 7% 80px;
+            display: grid;
+            grid-template-columns: 1.05fr 0.95fr;
+            align-items: center;
+            gap: 55px;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            border-radius: 999px;
+            background: var(--gold-light);
+            border: 1px solid rgba(245, 158, 11, 0.25);
+            color: var(--gold-dark);
+            font-weight: 700;
+            font-size: 13px;
+            margin-bottom: 22px;
+        }
+
+        .hero h1 {
+            font-size: clamp(36px, 5.5vw, 68px);
+            line-height: 1.06;
+            margin-bottom: 20px;
+            letter-spacing: -1.5px;
+            color: var(--text);
+        }
+
+        .hero h1 span {
+            color: var(--gold);
+            background: linear-gradient(135deg, var(--gold), var(--orange));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            max-width: 600px;
+            font-size: 17px;
+            line-height: 1.75;
+            color: var(--text-muted);
+            margin-bottom: 30px;
+        }
+
+        .welcome-line {
+            margin-bottom: 14px;
+            color: var(--text);
+            font-weight: 700;
+            font-size: 16px;
+        }
+
+        .actions {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 30px;
+        }
+
+        .btn {
+            border: none;
+            padding: 14px 26px;
+            border-radius: 14px;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 700;
+            transition: all 0.2s;
+            letter-spacing: 0.01em;
+        }
+
+        .btn-primary {
+            color: #fff;
+            background: linear-gradient(135deg, var(--gold), var(--orange));
+            box-shadow: 0 6px 20px rgba(245, 158, 11, 0.32);
+        }
+
+        .btn-primary:hover {
+            box-shadow: 0 10px 28px rgba(245, 158, 11, 0.42);
+        }
+
+        .btn-secondary {
+            color: var(--text);
+            background: var(--bg-card);
+            border: 1.5px solid var(--border);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--gold);
+            color: var(--gold-dark);
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            max-width: 580px;
+        }
+
+        .stat {
+            padding: 18px;
+            border-radius: 18px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            text-align: center;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .stat strong {
+            display: block;
+            color: var(--gold-dark);
+            font-size: 26px;
+            margin-bottom: 4px;
+            font-weight: 800;
+        }
+
+        .stat p {
+            color: var(--text-muted);
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .hero-card {
+            position: relative;
+            padding: 32px;
+            border-radius: 28px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow-lg);
+            animation: cardFloat 5s ease-in-out infinite;
+            overflow: hidden;
+        }
+
+        .hero-card::before {
+            content: "";
+            position: absolute;
+            top: -60px;
+            right: -60px;
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(245, 158, 11, 0.12), transparent 70%);
+        }
+
+        .hero-card h2 {
+            color: var(--text);
+            font-size: 22px;
+            font-weight: 700;
+            text-align: center;
+        }
+
+        @keyframes cardFloat {
+            0%, 100% { transform: translateY(0); }
+            50%       { transform: translateY(-10px); }
+        }
+
+        .brain-circle {
+            width: 130px;
+            height: 130px;
+            margin: 0 auto 20px;
+            border-radius: 50%;
+            display: grid;
+            place-items: center;
+            font-size: 56px;
+            background: linear-gradient(135deg, var(--gold-light), #fff);
+            border: 1.5px solid rgba(245, 158, 11, 0.2);
+            box-shadow: 0 8px 24px rgba(245, 158, 11, 0.15);
+        }
+
+        .mini-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .mini-grid div {
+            padding: 12px 8px;
+            border-radius: 12px;
+            text-align: center;
+            font-weight: 700;
+            font-size: 13px;
+            color: var(--gold-dark);
+            background: var(--gold-light);
+            border: 1px solid rgba(245, 158, 11, 0.18);
+            animation: pop 2s infinite alternate;
+        }
+
+        .mini-grid div:nth-child(even) {
+            animation-delay: 0.3s;
+            background: #fff7ed;
+            color: var(--orange);
+        }
+
+        @keyframes pop {
+            from { transform: scale(1); }
+            to   { transform: scale(1.04); }
+        }
+
+        section {
+            padding: 80px 7%;
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: clamp(28px, 3.5vw, 42px);
+            margin-bottom: 14px;
+            color: var(--text);
+            letter-spacing: -0.5px;
+        }
+
+        .section-subtitle {
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 16px;
+            margin-bottom: 40px;
+        }
+
+        #rules {
+            background: var(--bg);
+        }
+
+        .features {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+
+        .feature {
+            padding: 30px;
+            border-radius: 22px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow-sm);
+            transition: 0.25s;
+        }
+
+        .feature:hover {
+            transform: translateY(-8px);
+            box-shadow: var(--shadow-lg);
+            border-color: rgba(245, 158, 11, 0.2);
+        }
+
+        .feature .icon {
+            font-size: 34px;
+            margin-bottom: 16px;
+            display: inline-block;
+        }
+
+        .feature h3 {
+            color: var(--text);
+            margin-bottom: 10px;
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        .feature p {
+            color: var(--text-muted);
+            line-height: 1.7;
+            font-size: 15px;
+        }
+
+        .mentor-section,
+        .test-section {
+            display: none;
+        }
+
+        .mentor-section.show,
+        .test-section.show {
+            display: block;
+            animation: fadeIn 0.55s ease;
+        }
+
+        .mentor-section {
+            background: linear-gradient(135deg, #fffbeb, #fff7f0);
+        }
+
+        .mentor-card,
+        .test-card {
+            max-width: 980px;
+            margin: auto;
+            padding: 38px;
+            border-radius: 28px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .mentor-card {
+            display: grid;
+            grid-template-columns: 0.8fr 1.2fr;
+            gap: 36px;
+            align-items: center;
+        }
+
+        .mentor-img-wrap {
+            position: relative;
+            min-height: 300px;
+            border-radius: 22px;
+            overflow: hidden;
+            background: linear-gradient(135deg, var(--gold-light), #fff0e0);
+            border: 1px solid var(--border);
+            display: grid;
+            place-items: center;
+        }
+
+        .mentor-img-wrap img {
+            width: 100%;
+            height: 100%;
+            max-height: 360px;
+            object-fit: cover;
+            display: block;
+        }
+
+        .mentor-fallback {
+            display: none;
+            font-size: 90px;
+            text-align: center;
+        }
+
+        .mentor-img-wrap.image-missing img {
+            display: none;
+        }
+
+        .mentor-img-wrap.image-missing .mentor-fallback {
+            display: block;
+        }
+
+        .mentor-text h2 {
+            font-size: clamp(26px, 3.5vw, 42px);
+            line-height: 1.15;
+            margin-bottom: 14px;
+            color: var(--text);
+        }
+
+        .mentor-text h2 span {
+            color: var(--gold);
+        }
+
+        .mentor-text p {
+            color: var(--text-muted);
+            line-height: 1.8;
+            font-size: 16px;
+            margin-bottom: 20px;
+        }
+
+        .tip-box {
+            padding: 18px 20px;
+            border-radius: 16px;
+            background: var(--gold-light);
+            border: 1px solid rgba(245, 158, 11, 0.24);
+            margin-bottom: 24px;
+            color: #92400e;
+            font-weight: 600;
+            line-height: 1.6;
+            font-size: 15px;
+        }
+
+        .timer {
+            text-align: center;
+            font-size: 48px;
+            font-weight: 900;
+            color: var(--text);
+            margin-bottom: 14px;
+            letter-spacing: -1px;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            border-radius: 999px;
+            background: var(--border);
+            overflow: hidden;
+            margin-bottom: 30px;
+        }
+
+        .progress {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, var(--green), var(--gold), var(--orange));
+            transition: width 1s linear;
+            border-radius: 999px;
+        }
+
+        .test-card h2[data-key="testTitle"] {
+            text-align: center;
+            color: var(--text);
+            margin-bottom: 4px;
+        }
+
+        .word-list {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 10px;
+            margin: 22px 0;
+        }
+
+        .word {
+            padding: 13px 8px;
+            text-align: center;
+            border-radius: 12px;
+            background: var(--bg);
+            border: 1.5px solid var(--border);
+            font-weight: 700;
+            font-size: 14px;
+            color: var(--text);
+            animation: wordIn 0.4s ease both;
+            transition: 0.2s;
+        }
+
+        .word:hover {
+            border-color: var(--gold);
+            background: var(--gold-light);
+        }
+
+        @keyframes wordIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .answer-box {
+            display: none;
+        }
+
+        .answer-box h2 {
+            color: var(--text);
+            margin-bottom: 4px;
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 130px;
+            padding: 16px 18px;
+            border-radius: 16px;
+            border: 1.5px solid var(--border);
+            outline: none;
+            resize: vertical;
+            font-size: 15px;
+            background: var(--bg);
+            color: var(--text);
+            margin: 14px 0;
+            transition: border-color 0.2s;
+            font-family: inherit;
+        }
+
+        textarea:focus {
+            border-color: var(--gold);
+            background: #fff;
+        }
+
+        textarea::placeholder {
+            color: var(--text-light);
+        }
+
+        .result {
+            display: none;
+            margin-top: 18px;
+            padding: 20px 24px;
+            border-radius: 16px;
+            text-align: center;
+            font-weight: 700;
+            line-height: 1.6;
+            font-size: 16px;
+        }
+
+        .result.pass {
+            display: block;
+            background: #ecfdf5;
+            color: #065f46;
+            border: 1px solid #a7f3d0;
+        }
+
+        .result.fail {
+            display: block;
+            background: #fff1f2;
+            color: #9f1239;
+            border: 1px solid #fecdd3;
+        }
+
+        .register-box {
+            display: none;
+            margin-top: 24px;
+            padding: 28px;
+            border-radius: 22px;
+            background: linear-gradient(135deg, var(--gold-light), #fff7f0);
+            border: 1.5px solid rgba(245, 158, 11, 0.24);
+        }
+
+        .register-box.show {
+            display: block;
+            animation: fadeIn 0.4s ease;
+        }
+
+        .register-box h2 {
+            color: var(--text);
+        }
+
+        .register-box p {
+            color: var(--text-muted);
+        }
+
+        .register-box input {
+            width: 100%;
+            padding: 13px 16px;
+            border-radius: 12px;
+            border: 1.5px solid var(--border);
+            outline: none;
+            margin-top: 10px;
+            font-size: 15px;
+            background: #fff;
+            color: var(--text);
+            transition: border-color 0.2s;
+            font-family: inherit;
+        }
+
+        .register-box input:focus {
+            border-color: var(--gold);
+        }
+
+        footer {
+            padding: 30px 7%;
+            text-align: center;
+            color: var(--text-light);
+            font-size: 14px;
+            border-top: 1px solid var(--border);
+            background: var(--bg-card);
+        }
+
+        @media (max-width: 900px) {
+            header {
+                flex-direction: column;
+                padding: 16px 5%;
+            }
+
+            .hero,
+            .mentor-card {
+                grid-template-columns: 1fr;
+                text-align: center;
+                padding: 40px 5% 60px;
+                gap: 32px;
+            }
+
+            .actions {
+                justify-content: center;
+            }
+
+            .stats,
+            .features {
+                grid-template-columns: 1fr;
+            }
+
+            .mini-grid,
+            .word-list {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .badge {
+                margin-left: auto;
+                margin-right: auto;
+            }
+
+            section {
+                padding: 50px 5%;
+            }
+
+            .mentor-card,
+            .test-card {
+                padding: 24px 20px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="bg-shapes">
+        <span></span><span></span><span></span><span></span>
+    </div>
+
+    <!-- Name screen before website -->
+    <div class="name-screen" id="nameScreen">
+        <div class="name-box">
+            <h1>Welcome to <span>GMC 2026</span></h1>
+            <p>Before entering the memory challenge, please enter your name.</p>
+            <input type="text" id="nameInput" placeholder="Enter your name..." />
+            <button class="btn btn-primary" onclick="enterWebsite()">Enter Website</button>
+        </div>
+    </div>
+
+    <div class="app" id="app">
+        <header>
+            <div class="brand">
+                <div class="logo">MW</div>
+                <div>MindWhiz Memory Challenge</div>
+            </div>
+
+            <div class="lang-box">
+                <button class="active" onclick="setLanguage('en', this)">English</button>
+                <button onclick="setLanguage('hi', this)">हिन्दी</button>
+                <button onclick="setLanguage('gu', this)">ગુજરાતી</button>
+            </div>
+        </header>
+
+        <main class="hero">
+            <div>
+                <div class="badge" data-key="badge">✨ GMC 2026 Selection Round</div>
+
+                <div class="welcome-line" id="welcomeLine">Welcome, Champion!</div>
+
+                <h1 data-key="heroTitle">
+                    Prove Your <span>Memory Power</span>
+                </h1>
+
+                <p class="subtitle" data-key="heroText">
+                    Watch the words carefully, remember the sequence, and unlock your registration by passing the
+                    challenge.
+                </p>
+
+                <div class="actions">
+                    <button class="btn btn-primary" onclick="openMentor()" data-key="startBtn">
+                        Start Challenge
+                    </button>
+                    <button class="btn btn-secondary" onclick="scrollToRules()" data-key="rulesBtn">
+                        View Rules
+                    </button>
+                </div>
+
+                <div class="stats">
+                    <div class="stat">
+                        <strong>20</strong>
+                        <p data-key="stat1">Words</p>
+                    </div>
+                    <div class="stat">
+                        <strong>45s</strong>
+                        <p data-key="stat2">Memory Time</p>
+                    </div>
+                    <div class="stat">
+                        <strong>80%</strong>
+                        <p data-key="stat3">Pass Score</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="hero-card">
+                <div class="brain-circle">🧠</div>
+                <h2 data-key="cardTitle">Memory Preview</h2>
+                <p style="color:var(--text-muted); margin-top:10px; line-height:1.7;" data-key="cardText">
+                    You will get limited time to observe the words. After that, type them in the same order.
+                </p>
+
+                <div class="mini-grid">
+                    <div>Focus</div>
+                    <div>Brain</div>
+                    <div>Speed</div>
+                    <div>Recall</div>
+                    <div>Logic</div>
+                    <div>Smart</div>
+                    <div>Power</div>
+                    <div>Win</div>
+                </div>
+            </div>
+        </main>
+
+        <section id="rules">
+            <h2 class="section-title" data-key="rulesTitle">How The Test Works</h2>
+            <p class="section-subtitle">Three simple steps to prove your memory is championship-level.</p>
+
+            <div class="features">
+                <div class="feature">
+                    <div class="icon">👀</div>
+                    <h3 data-key="f1Title">1. Observe</h3>
+                    <p data-key="f1Text">You will get 45 seconds to remember 20 words shown in one sequence.</p>
+                </div>
+
+                <div class="feature">
+                    <div class="icon">🧠</div>
+                    <h3 data-key="f2Title">2. Recall</h3>
+                    <p data-key="f2Text">After the timer ends, type the words in the same order as shown.</p>
+                </div>
+
+                <div class="feature">
+                    <div class="icon">🎉</div>
+                    <h3 data-key="f3Title">3. Register</h3>
+                    <p data-key="f3Text">If your score is 80% or above, your registration form will be unlocked.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Mentor screen before actual test -->
+        <section class="mentor-section" id="mentorSection">
+            <div class="mentor-card">
+                <div class="mentor-img-wrap" id="mentorImageBox">
+                    <img src="natu-kaka.png" alt="Natu Kaka mentor image" onerror="showImageFallback()" />
+                    <div class="mentor-fallback">👴</div>
+                </div>
+
+                <div class="mentor-text">
+                    <h2 data-key="mentorTitle">
+                        Natu Kaka says: <span>Focus First!</span>
+                    </h2>
+
+                    <p id="mentorGreeting">
+                        Dear participant, stay calm and read every word carefully before the timer ends.
+                    </p>
+
+                    <div class="tip-box" data-key="mentorTip">
+                        Tip: Don’t try to memorize one by one only. Make small stories using the words.
+                    </div>
+
+                    <button class="btn btn-primary" onclick="beginActualTest()" data-key="readyBtn">
+                        I Am Ready
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Test section -->
+        <section class="test-section" id="testSection">
+            <div class="test-card">
+                <div class="timer" id="timer">45</div>
+                <div class="progress-bar">
+                    <div class="progress" id="progress"></div>
+                </div>
+
+                <h2 data-key="testTitle">Remember These 20 Words</h2>
+
+                <div class="word-list" id="wordList"></div>
+
+                <div class="answer-box" id="answerBox">
+                    <h2 data-key="answerTitle">Type the words in correct order</h2>
+                    <textarea id="userAnswer" placeholder="Type all words here separated by space..."></textarea>
+                    <button class="btn btn-primary" onclick="checkAnswer()" data-key="submitBtn">Submit Answer</button>
+                </div>
+
+                <div class="result" id="resultBox"></div>
+
+                <div class="register-box" id="registerBox">
+                    <h2 data-key="regTitle">Registration Unlocked 🎉</h2>
+                    <p style="color:var(--text-muted); margin-top:8px;" data-key="regText">
+                        Congratulations! Fill your details to continue.
+                    </p>
+
+                    <input type="text" id="regName" placeholder="Full Name" />
+                    <input type="email" placeholder="Email Address" />
+                    <input type="tel" placeholder="Mobile Number" />
+
+                    <button class="btn btn-primary" style="margin-top:12px;" data-key="regBtn">
+                        Submit Registration
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <footer>
+            <p data-key="footerText">Organized by MindWhiz | Designed for GMC 2026</p>
+        </footer>
+    </div>
+
+    <script>
+        let userName = "";
+        let currentLang = "en";
+        let timeLeft = 45;
+        let timerInterval;
+
+        const translations = {
+            en: {
+                badge: "✨ GMC 2026 Selection Round",
+                heroTitle: "Prove Your <span>Memory Power</span>",
+                heroText: "Watch the words carefully, remember the sequence, and unlock your registration by passing the challenge.",
+                startBtn: "Start Challenge",
+                rulesBtn: "View Rules",
+                stat1: "Words",
+                stat2: "Memory Time",
+                stat3: "Pass Score",
+                cardTitle: "Memory Preview",
+                cardText: "You will get limited time to observe the words. After that, type them in the same order.",
+                rulesTitle: "How The Test Works",
+                f1Title: "1. Observe",
+                f1Text: "You will get 45 seconds to remember 20 words shown in one sequence.",
+                f2Title: "2. Recall",
+                f2Text: "After the timer ends, type the words in the same order as shown.",
+                f3Title: "3. Register",
+                f3Text: "If your score is 80% or above, your registration form will be unlocked.",
+                mentorTitle: "Natu Kaka says: <span>Focus First!</span>",
+                mentorTip: "Tip: Don’t try to memorize one by one only. Make small stories using the words.",
+                readyBtn: "I Am Ready",
+                testTitle: "Remember These 20 Words",
+                answerTitle: "Type the words in correct order",
+                submitBtn: "Submit Answer",
+                regTitle: "Registration Unlocked 🎉",
+                regText: "Congratulations! Fill your details to continue.",
+                regBtn: "Submit Registration",
+                footerText: "Organized by MindWhiz | Designed for GMC 2026",
+                welcome: "Welcome",
+                mentorGreeting: "Dear participant, stay calm and read every word carefully before the timer ends.",
+                timeOver: "Time Over",
+                pass: "Excellent",
+                fail: "Good try"
+            },
+
+            hi: {
+                badge: "✨ GMC 2026 चयन राउंड",
+                heroTitle: "अपनी <span>मेमोरी पावर</span> दिखाइए",
+                heroText: "शब्दों को ध्यान से देखें, क्रम याद रखें और चुनौती पास करके रजिस्ट्रेशन अनलॉक करें।",
+                startBtn: "चैलेंज शुरू करें",
+                rulesBtn: "नियम देखें",
+                stat1: "शब्द",
+                stat2: "याद करने का समय",
+                stat3: "पास स्कोर",
+                cardTitle: "मेमोरी प्रीव्यू",
+                cardText: "आपको शब्द देखने के लिए सीमित समय मिलेगा। उसके बाद उन्हें उसी क्रम में लिखना होगा।",
+                rulesTitle: "टेस्ट कैसे काम करता है",
+                f1Title: "1. देखें",
+                f1Text: "आपको 20 शब्दों की श्रृंखला याद करने के लिए 45 सेकंड मिलेंगे।",
+                f2Title: "2. याद करें",
+                f2Text: "टाइमर समाप्त होने के बाद शब्दों को उसी क्रम में लिखें।",
+                f3Title: "3. रजिस्टर करें",
+                f3Text: "यदि आपका स्कोर 80% या उससे अधिक है, तो रजिस्ट्रेशन फॉर्म खुल जाएगा।",
+                mentorTitle: "नट्टू काका कहते हैं: <span>पहले फोकस!</span>",
+                mentorTip: "टिप: शब्दों को अलग-अलग याद करने के बजाय उनसे छोटी कहानी बनाइए।",
+                readyBtn: "मैं तैयार हूँ",
+                testTitle: "इन 20 शब्दों को याद करें",
+                answerTitle: "शब्दों को सही क्रम में लिखें",
+                submitBtn: "उत्तर सबमिट करें",
+                regTitle: "रजिस्ट्रेशन अनलॉक हो गया 🎉",
+                regText: "बधाई हो! आगे बढ़ने के लिए अपनी जानकारी भरें।",
+                regBtn: "रजिस्ट्रेशन सबमिट करें",
+                footerText: "MindWhiz द्वारा आयोजित | GMC 2026 के लिए डिज़ाइन",
+                welcome: "स्वागत है",
+                mentorGreeting: "प्रिय प्रतिभागी, शांत रहें और टाइमर खत्म होने से पहले हर शब्द ध्यान से पढ़ें।",
+                timeOver: "समय समाप्त",
+                pass: "बहुत बढ़िया",
+                fail: "अच्छा प्रयास"
+            },
+
+            gu: {
+                badge: "✨ GMC 2026 પસંદગી રાઉન્ડ",
+                heroTitle: "તમારી <span>મેમરી પાવર</span> સાબિત કરો",
+                heroText: "શબ્દોને ધ્યાનથી જુઓ, ક્રમ યાદ રાખો અને ચેલેન્જ પાસ કરીને રજીસ્ટ્રેશન અનલોક કરો.",
+                startBtn: "ચેલેન્જ શરૂ કરો",
+                rulesBtn: "નિયમો જુઓ",
+                stat1: "શબ્દો",
+                stat2: "યાદ સમય",
+                stat3: "પાસ સ્કોર",
+                cardTitle: "મેમરી પ્રિવ્યૂ",
+                cardText: "તમને શબ્દો જોવા માટે મર્યાદિત સમય મળશે. પછી એ જ ક્રમમાં લખવાનું રહેશે.",
+                rulesTitle: "ટેસ્ટ કેવી રીતે કામ કરે છે",
+                f1Title: "1. જુઓ",
+                f1Text: "તમને 20 શબ્દોની શ્રેણી યાદ રાખવા માટે 45 સેકન્ડ મળશે.",
+                f2Title: "2. યાદ કરો",
+                f2Text: "ટાઈમર પૂરો થયા પછી શબ્દોને એ જ ક્રમમાં લખો.",
+                f3Title: "3. રજીસ્ટર કરો",
+                f3Text: "જો તમારો સ્કોર 80% અથવા વધુ હશે, તો રજીસ્ટ્રેશન ફોર્મ ખુલશે.",
+                mentorTitle: "નટુ કાકા કહે છે: <span>પહેલા ફોકસ!</span>",
+                mentorTip: "ટિપ: શબ્દોને અલગ-અલગ યાદ ન કરો. શબ્દોનો ઉપયોગ કરીને નાની વાર્તા બનાવો.",
+                readyBtn: "હું તૈયાર છું",
+                testTitle: "આ 20 શબ્દો યાદ રાખો",
+                answerTitle: "શબ્દોને યોગ્ય ક્રમમાં લખો",
+                submitBtn: "જવાબ સબમિટ કરો",
+                regTitle: "રજીસ્ટ્રેશન અનલોક થયું 🎉",
+                regText: "અભિનંદન! આગળ વધવા માટે તમારી માહિતી भरो.",
+                regBtn: "રજીસ્ટ્રેશન સબમિટ કરો",
+                footerText: "MindWhiz દ્વારા આયોજિત | GMC 2026 માટે ડિઝાઇન",
+                welcome: "સ્વાગત છે",
+                mentorGreeting: "પ્રિય ભાગ લેનાર, શાંત રહો અને ટાઈમર પૂરો થાય તે પહેલાં દરેક શબ્દ ધ્યાનથી વાંચો.",
+                timeOver: "સમય પૂર્ણ",
+                pass: "ખૂબ સરસ",
+                fail: "સારો પ્રયાસ"
+            }
+        };
+
+        const words = [
+            "Lotus", "River", "Courage", "Mirror", "Planet",
+            "Wisdom", "Rocket", "Memory", "Forest", "Diamond",
+            "Teacher", "Focus", "Energy", "Victory", "Mountain",
+            "Puzzle", "Champion", "Light", "Future", "Brain"
+        ];
+
+        function enterWebsite() {
+            const input = document.getElementById("nameInput");
+            const name = input.value.trim();
+
+            if (name.length < 2) {
+                input.style.border = "1px solid #fb7185";
+                input.placeholder = "Please enter your name first";
+                return;
+            }
+
+            userName = name;
+            document.getElementById("nameScreen").style.display = "none";
+            document.getElementById("app").classList.add("show");
+            updatePersonalText();
+        }
+
+        document.getElementById("nameInput").addEventListener("keydown", function (e) {
+            if (e.key === "Enter") {
+                enterWebsite();
+            }
+        });
+
+        function updatePersonalText() {
+            document.getElementById("welcomeLine").innerText =
+                `${translations[currentLang].welcome}, ${userName}!`;
+
+            document.getElementById("mentorGreeting").innerText =
+                `${translations[currentLang].mentorGreeting} ${userName}, give your best!`;
+
+            document.getElementById("regName").value = userName;
+        }
+
+        function setLanguage(lang, button) {
+            currentLang = lang;
+
+            document.querySelectorAll(".lang-box button").forEach(btn => {
+                btn.classList.remove("active");
+            });
+
+            button.classList.add("active");
+
+            document.querySelectorAll("[data-key]").forEach(element => {
+                const key = element.getAttribute("data-key");
+                element.innerHTML = translations[lang][key];
+            });
+
+            updatePersonalText();
+        }
+
+        function scrollToRules() {
+            document.getElementById("rules").scrollIntoView({ behavior: "smooth" });
+        }
+
+        function showImageFallback() {
+            document.getElementById("mentorImageBox").classList.add("image-missing");
+        }
+
+        function openMentor() {
+            document.getElementById("mentorSection").classList.add("show");
+            document.getElementById("mentorSection").scrollIntoView({ behavior: "smooth" });
+        }
+
+        function beginActualTest() {
+            document.getElementById("testSection").classList.add("show");
+            document.getElementById("testSection").scrollIntoView({ behavior: "smooth" });
+
+            const wordList = document.getElementById("wordList");
+            const answerBox = document.getElementById("answerBox");
+            const resultBox = document.getElementById("resultBox");
+            const registerBox = document.getElementById("registerBox");
+            const progress = document.getElementById("progress");
+
+            wordList.innerHTML = "";
+            answerBox.style.display = "none";
+            resultBox.style.display = "none";
+            registerBox.classList.remove("show");
+            document.getElementById("userAnswer").value = "";
+
+            words.forEach((word, index) => {
+                const div = document.createElement("div");
+                div.className = "word";
+                div.style.animationDelay = `${index * 0.035}s`;
+                div.innerText = `${index + 1}. ${word}`;
+                wordList.appendChild(div);
+            });
+
+            timeLeft = 45;
+            document.getElementById("timer").innerText = timeLeft;
+            progress.style.width = "100%";
+
+            clearInterval(timerInterval);
+
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                document.getElementById("timer").innerText = timeLeft;
+                progress.style.width = `${(timeLeft / 45) * 100}%`;
+
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    wordList.style.display = "none";
+                    answerBox.style.display = "block";
+                    document.getElementById("timer").innerText = translations[currentLang].timeOver;
+                    progress.style.width = "0%";
+                }
+            }, 1000);
+
+            wordList.style.display = "grid";
+        }
+
+        function checkAnswer() {
+            const userText = document.getElementById("userAnswer").value.trim().toLowerCase();
+            const userWords = userText.split(/\s+/).filter(Boolean);
+
+            let correct = 0;
+
+            for (let i = 0; i < words.length; i++) {
+                if (userWords[i] && userWords[i] === words[i].toLowerCase()) {
+                    correct++;
+                }
+            }
+
+            const score = Math.round((correct / words.length) * 100);
+            const resultBox = document.getElementById("resultBox");
+            const registerBox = document.getElementById("registerBox");
+
+            if (score >= 80) {
+                resultBox.className = "result pass";
+                resultBox.innerHTML =
+                    `${translations[currentLang].pass}, ${userName}!<br>Your score is ${score}%. You passed the selection round.`;
+                registerBox.classList.add("show");
+            } else {
+                resultBox.className = "result fail";
+                resultBox.innerHTML =
+                    `${translations[currentLang].fail}, ${userName}.<br>Your score is ${score}%. You need 80% to pass. Try again!`;
+                registerBox.classList.remove("show");
+            }
+        }
+    </script>
+</body>
+
+</html>
