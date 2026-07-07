@@ -789,8 +789,9 @@
     <div class="name-screen" id="nameScreen">
         <div class="name-box">
             <h1>Welcome to <span>GMC 2026</span></h1>
-            <p>Before entering the memory challenge, please enter your name.</p>
+            <p>Before entering the memory challenge, please enter your details.</p>
             <input type="text" id="nameInput" placeholder="Enter your name..." />
+            <input type="tel" id="phoneInput" placeholder="Enter your phone number..." />
             <button class="btn btn-primary" onclick="enterWebsite()">Enter Website</button>
         </div>
     </div>
@@ -898,13 +899,13 @@
         <section class="mentor-section" id="mentorSection">
             <div class="mentor-card">
                 <div class="mentor-img-wrap" id="mentorImageBox">
-                    <img src="natu-kaka.png" alt="Natu Kaka mentor image" onerror="showImageFallback()" />
-                    <div class="mentor-fallback">👴</div>
+                    <img src="abdul.png" alt="Abdul mentor image" onerror="showImageFallback()" />
+                    <div class="mentor-fallback">🧑‍🏫</div>
                 </div>
 
                 <div class="mentor-text">
                     <h2 data-key="mentorTitle">
-                        Natu Kaka says: <span>Focus First!</span>
+                        Abdul says: <span>Focus First!</span>
                     </h2>
 
                     <p id="mentorGreeting">
@@ -949,12 +950,13 @@
                     </p>
 
                     <input type="text" id="regName" placeholder="Full Name" />
-                    <input type="email" placeholder="Email Address" />
-                    <input type="tel" placeholder="Mobile Number" />
+                    <input type="email" id="regEmail" placeholder="Email Address" />
+                    <input type="tel" id="regPhone" placeholder="Mobile Number" />
 
-                    <button class="btn btn-primary" style="margin-top:12px;" data-key="regBtn">
+                    <button class="btn btn-primary" style="margin-top:12px;" id="regSubmitBtn" onclick="submitRegistration()" data-key="regBtn">
                         Submit Registration
                     </button>
+                    <div id="regStatus" style="margin-top:12px; font-size:14px; font-weight:600; color:var(--text-muted);"></div>
                 </div>
             </div>
         </section>
@@ -966,9 +968,14 @@
 
     <script>
         let userName = "";
+        let userPhone = "";
+        let lastScore = 0;
         let currentLang = "en";
         let timeLeft = 45;
         let timerInterval;
+
+        // Paste your Google Apps Script Web App URL here after deploying
+        const SHEET_URL = "YOUR_GOOGLE_APPS_SCRIPT_URL_HERE";
 
         const translations = {
             en: {
@@ -989,7 +996,7 @@
                 f2Text: "After the timer ends, type the words in the same order as shown.",
                 f3Title: "3. Register",
                 f3Text: "If your score is 80% or above, your registration form will be unlocked.",
-                mentorTitle: "Natu Kaka says: <span>Focus First!</span>",
+                mentorTitle: "Abdul says: <span>Focus First!</span>",
                 mentorTip: "Tip: Don’t try to memorize one by one only. Make small stories using the words.",
                 readyBtn: "I Am Ready",
                 testTitle: "Remember These 20 Words",
@@ -1024,7 +1031,7 @@
                 f2Text: "टाइमर समाप्त होने के बाद शब्दों को उसी क्रम में लिखें।",
                 f3Title: "3. रजिस्टर करें",
                 f3Text: "यदि आपका स्कोर 80% या उससे अधिक है, तो रजिस्ट्रेशन फॉर्म खुल जाएगा।",
-                mentorTitle: "नट्टू काका कहते हैं: <span>पहले फोकस!</span>",
+                mentorTitle: "अब्दुल कहते हैं: <span>पहले फोकस!</span>",
                 mentorTip: "टिप: शब्दों को अलग-अलग याद करने के बजाय उनसे छोटी कहानी बनाइए।",
                 readyBtn: "मैं तैयार हूँ",
                 testTitle: "इन 20 शब्दों को याद करें",
@@ -1059,7 +1066,7 @@
                 f2Text: "ટાઈમર પૂરો થયા પછી શબ્દોને એ જ ક્રમમાં લખો.",
                 f3Title: "3. રજીસ્ટર કરો",
                 f3Text: "જો તમારો સ્કોર 80% અથવા વધુ હશે, તો રજીસ્ટ્રેશન ફોર્મ ખુલશે.",
-                mentorTitle: "નટુ કાકા કહે છે: <span>પહેલા ફોકસ!</span>",
+                mentorTitle: "અબ્દુલ કહે છે: <span>પહેલા ફોકસ!</span>",
                 mentorTip: "ટિપ: શબ્દોને અલગ-અલગ યાદ ન કરો. શબ્દોનો ઉપયોગ કરીને નાની વાર્તા બનાવો.",
                 readyBtn: "હું તૈયાર છું",
                 testTitle: "આ 20 શબ્દો યાદ રાખો",
@@ -1085,25 +1092,34 @@
         ];
 
         function enterWebsite() {
-            const input = document.getElementById("nameInput");
-            const name = input.value.trim();
+            const nameInput = document.getElementById("nameInput");
+            const phoneInput = document.getElementById("phoneInput");
+            const name = nameInput.value.trim();
+            const phone = phoneInput.value.trim();
 
             if (name.length < 2) {
-                input.style.border = "1px solid #fb7185";
-                input.placeholder = "Please enter your name first";
+                nameInput.style.border = "1.5px solid var(--red)";
+                nameInput.placeholder = "Please enter your name first";
+                return;
+            }
+            if (phone.length < 6) {
+                phoneInput.style.border = "1.5px solid var(--red)";
+                phoneInput.placeholder = "Please enter a valid phone number";
                 return;
             }
 
             userName = name;
+            userPhone = phone;
             document.getElementById("nameScreen").style.display = "none";
             document.getElementById("app").classList.add("show");
             updatePersonalText();
         }
 
         document.getElementById("nameInput").addEventListener("keydown", function (e) {
-            if (e.key === "Enter") {
-                enterWebsite();
-            }
+            if (e.key === "Enter") document.getElementById("phoneInput").focus();
+        });
+        document.getElementById("phoneInput").addEventListener("keydown", function (e) {
+            if (e.key === "Enter") enterWebsite();
         });
 
         function updatePersonalText() {
@@ -1114,6 +1130,7 @@
                 `${translations[currentLang].mentorGreeting} ${userName}, give your best!`;
 
             document.getElementById("regName").value = userName;
+            document.getElementById("regPhone").value = userPhone;
         }
 
         function setLanguage(lang, button) {
@@ -1206,6 +1223,7 @@
             }
 
             const score = Math.round((correct / words.length) * 100);
+            lastScore = score;
             const resultBox = document.getElementById("resultBox");
             const registerBox = document.getElementById("registerBox");
 
@@ -1220,6 +1238,53 @@
                     `${translations[currentLang].fail}, ${userName}.<br>Your score is ${score}%. You need 80% to pass. Try again!`;
                 registerBox.classList.remove("show");
             }
+        }
+        function submitRegistration() {
+            const name = document.getElementById("regName").value.trim();
+            const email = document.getElementById("regEmail").value.trim();
+            const phone = document.getElementById("regPhone").value.trim();
+            const statusEl = document.getElementById("regStatus");
+            const btn = document.getElementById("regSubmitBtn");
+
+            if (!name || !email || !phone) {
+                statusEl.style.color = "var(--red)";
+                statusEl.textContent = "Please fill all fields before submitting.";
+                return;
+            }
+
+            btn.disabled = true;
+            btn.textContent = "Submitting...";
+            statusEl.style.color = "var(--text-muted)";
+            statusEl.textContent = "Sending your data...";
+
+            const payload = {
+                timestamp: new Date().toLocaleString(),
+                name: name,
+                email: email,
+                phone: phone,
+                score: lastScore + "%",
+                language: currentLang
+            };
+
+            fetch(SHEET_URL, {
+                method: "POST",
+                mode: "no-cors",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
+            })
+            .then(() => {
+                btn.textContent = "Submitted!";
+                btn.style.background = "var(--green)";
+                btn.style.boxShadow = "0 6px 20px rgba(16,185,129,0.3)";
+                statusEl.style.color = "var(--green)";
+                statusEl.textContent = "Registration submitted successfully!";
+            })
+            .catch(() => {
+                btn.disabled = false;
+                btn.textContent = "Submit Registration";
+                statusEl.style.color = "var(--red)";
+                statusEl.textContent = "Submission failed. Please check your connection and try again.";
+            });
         }
     </script>
 </body>
