@@ -915,6 +915,96 @@
                 border-radius: 12px;
             }
         }
+
+        /* OTP Input Styling */
+        .otp-container {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            margin: 24px 0 16px;
+        }
+        .otp-input {
+            width: 100%;
+            height: 48px;
+            border-radius: 12px;
+            border: 1.5px solid var(--border);
+            text-align: center;
+            font-size: 18px;
+            font-weight: 700;
+            background: var(--bg);
+            color: var(--text);
+            outline: none;
+            transition: all 0.2s ease;
+        }
+        .otp-input:focus {
+            border-color: var(--gold);
+            background: #fff;
+            box-shadow: 0 0 0 3.5px rgba(245, 158, 11, 0.15);
+        }
+        
+        /* Email Simulator Toast */
+        .toast-sim {
+            position: fixed;
+            top: 24px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-120px);
+            background: var(--bg-card);
+            border: 1.5px solid var(--border);
+            border-left: 5px solid var(--gold);
+            border-radius: 16px;
+            padding: 16px 20px;
+            box-shadow: var(--shadow-lg);
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            max-width: 440px;
+            width: calc(100% - 32px);
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s;
+            opacity: 0;
+        }
+        .toast-sim.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+        .toast-sim-content {
+            flex-grow: 1;
+            text-align: left;
+        }
+        .toast-sim-title {
+            font-weight: 700;
+            font-size: 14px;
+            color: var(--text);
+            margin-bottom: 2px;
+        }
+        .toast-sim-desc {
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+        .toast-sim-code {
+            font-family: monospace;
+            background: var(--gold-light);
+            color: var(--gold-dark);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+        .toast-sim-btn {
+            border: none;
+            background: var(--gold-light);
+            color: var(--gold-dark);
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .toast-sim-btn:hover {
+            background: var(--gold);
+            color: #fff;
+        }
     </style>
 </head>
 
@@ -925,13 +1015,44 @@
 
     <!-- Name screen before website -->
     <div class="name-screen" id="nameScreen">
-        <div class="name-box">
+        <div class="name-box" style="transition: all 0.3s ease;">
             <h1>Welcome to <span>GMC 2026</span></h1>
-            <p>Before entering the memory challenge, please enter your details.</p>
-            <input type="text" id="nameInput" placeholder="Enter your name..." />
-            <input type="tel" id="phoneInput" placeholder="Enter your phone number..." />
-            <button class="btn btn-primary" onclick="enterWebsite()">Enter Website</button>
+            <p id="nameScreenDesc">Before entering the memory challenge, please enter your details.</p>
+            
+            <div id="initialForm">
+                <input type="text" id="nameInput" placeholder="Enter your name..." style="margin-bottom: 14px;" />
+                <input type="email" id="emailInput" placeholder="Enter your email address..." style="margin-bottom: 14px;" />
+                <button class="btn btn-primary" style="width: 100%;" onclick="sendOTP()">Enter Website</button>
+            </div>
+            
+            <div id="otpForm" style="display: none;">
+                <p style="margin-bottom: 16px; font-size: 14px; color: var(--text-muted);">We've sent a 6-digit code to <strong id="sentEmail" style="color: var(--text);"></strong></p>
+                <div class="otp-container">
+                    <input type="text" class="otp-input" maxlength="1" oninput="moveToNext(this, 0)" onkeydown="moveBack(this, 0)" />
+                    <input type="text" class="otp-input" maxlength="1" oninput="moveToNext(this, 1)" onkeydown="moveBack(this, 1)" />
+                    <input type="text" class="otp-input" maxlength="1" oninput="moveToNext(this, 2)" onkeydown="moveBack(this, 2)" />
+                    <input type="text" class="otp-input" maxlength="1" oninput="moveToNext(this, 3)" onkeydown="moveBack(this, 3)" />
+                    <input type="text" class="otp-input" maxlength="1" oninput="moveToNext(this, 4)" onkeydown="moveBack(this, 4)" />
+                    <input type="text" class="otp-input" maxlength="1" oninput="moveToNext(this, 5)" onkeydown="moveBack(this, 5)" />
+                </div>
+                <button class="btn btn-primary" style="width: 100%; margin-top: 10px; margin-bottom: 16px;" onclick="verifyOTP()">Verify Code</button>
+                <div style="display: flex; justify-content: space-between; align-items: center; font-size: 13px; font-weight: 600;">
+                    <a href="#" onclick="backToForm()" style="color: var(--gold-dark); text-decoration: none;">← Change Email</a>
+                    <span id="otpTimer" style="color: var(--text-light); font-weight: 400;">Resend in 30s</span>
+                    <a href="#" id="resendBtn" onclick="resendOTP()" style="color: var(--gold-dark); text-decoration: none; display: none;">Resend Code</a>
+                </div>
+            </div>
         </div>
+    </div>
+
+    <!-- Email Simulator Toast -->
+    <div class="toast-sim" id="toastSim">
+        <div style="font-size: 24px; line-height: 1;">✉️</div>
+        <div class="toast-sim-content">
+            <div class="toast-sim-title">Email Simulator (Verification Code)</div>
+            <div class="toast-sim-desc">Your verification code is <span class="toast-sim-code" id="toastCode">------</span></div>
+        </div>
+        <button class="toast-sim-btn" onclick="copySimCode()">Copy</button>
     </div>
 
     <div class="app" id="app">
@@ -1106,14 +1227,3017 @@
 
     <script>
         let userName = "";
-        let userPhone = "";
+        let userEmail = "";
         let lastScore = 0;
         let currentLang = "en";
         let timeLeft = 45;
         let timerInterval;
+        
+        let generatedOTP = "";
+        let otpTimerInterval;
+        let resendTimeout = 30;
+        let currentTestKeys = [];
 
         // Paste your Google Apps Script Web App URL here after deploying
-        const SHEET_URL = "YOUR_GOOGLE_APPS_SCRIPT_URL_HERE";
+        const SHEET_URL = "https://script.google.com/macros/s/AKfycbybINs2GSQulA0IcrcqchFVcpAV-uR11PLzytynGRMV_11o3zw9O8873JKyv-qd8cjZ/exec";
+        
+        const wordBank = {
+        "ox": {
+                "en": "ox",
+                "hi": "बैल",
+                "gu": "બળદ"
+        },
+        "ax": {
+                "en": "ax",
+                "hi": "कुल्हाड़ी",
+                "gu": "કુહાડી"
+        },
+        "ant": {
+                "en": "ant",
+                "hi": "चींटी",
+                "gu": "કીડી"
+        },
+        "ape": {
+                "en": "ape",
+                "hi": "बन्दर",
+                "gu": "ચાળા"
+        },
+        "bat": {
+                "en": "bat",
+                "hi": "बल्ला",
+                "gu": "બેટ"
+        },
+        "bee": {
+                "en": "bee",
+                "hi": "मधुमक्खी",
+                "gu": "મધમાખી"
+        },
+        "bug": {
+                "en": "bug",
+                "hi": "बग",
+                "gu": "ભૂલ"
+        },
+        "cod": {
+                "en": "cod",
+                "hi": "कॉड",
+                "gu": "કૉડ"
+        },
+        "cow": {
+                "en": "cow",
+                "hi": "गाय",
+                "gu": "ગાય"
+        },
+        "dog": {
+                "en": "dog",
+                "hi": "कुत्ता",
+                "gu": "કૂતરો"
+        },
+        "eel": {
+                "en": "eel",
+                "hi": "मछली",
+                "gu": "ઇલ"
+        },
+        "emu": {
+                "en": "emu",
+                "hi": "एमु",
+                "gu": "ઇમુ"
+        },
+        "fly": {
+                "en": "fly",
+                "hi": "उड़ना",
+                "gu": "ઉડી"
+        },
+        "fox": {
+                "en": "fox",
+                "hi": "लोमड़ी",
+                "gu": "શિયાળ"
+        },
+        "hen": {
+                "en": "hen",
+                "hi": "मुर्गी",
+                "gu": "મરઘી"
+        },
+        "hog": {
+                "en": "hog",
+                "hi": "सुअर",
+                "gu": "હોગ"
+        },
+        "owl": {
+                "en": "owl",
+                "hi": "उल्लू",
+                "gu": "ઘુવડ"
+        },
+        "pig": {
+                "en": "pig",
+                "hi": "सुअर",
+                "gu": "ડુક્કર"
+        },
+        "rat": {
+                "en": "rat",
+                "hi": "चूहा",
+                "gu": "ઉંદર"
+        },
+        "yak": {
+                "en": "yak",
+                "hi": "याक",
+                "gu": "યાક"
+        },
+        "ram": {
+                "en": "ram",
+                "hi": "राम",
+                "gu": "રેમ"
+        },
+        "kid": {
+                "en": "kid",
+                "hi": "बच्चा",
+                "gu": "બાળક"
+        },
+        "cub": {
+                "en": "cub",
+                "hi": "शावक",
+                "gu": "બચ્ચા"
+        },
+        "pup": {
+                "en": "pup",
+                "hi": "पिल्ला",
+                "gu": "ગલુડિયા"
+        },
+        "doe": {
+                "en": "doe",
+                "hi": "डो",
+                "gu": "ડો"
+        },
+        "ewe": {
+                "en": "ewe",
+                "hi": "भेड़",
+                "gu": "ઇવે"
+        },
+        "elk": {
+                "en": "elk",
+                "hi": "एल्क",
+                "gu": "એલ્ક"
+        },
+        "goat": {
+                "en": "goat",
+                "hi": "बकरी",
+                "gu": "બકરી"
+        },
+        "lamb": {
+                "en": "lamb",
+                "hi": "मेमना",
+                "gu": "ભોળું"
+        },
+        "lion": {
+                "en": "lion",
+                "hi": "सिंह",
+                "gu": "સિંહ"
+        },
+        "bear": {
+                "en": "bear",
+                "hi": "भालू",
+                "gu": "રીંછ"
+        },
+        "wolf": {
+                "en": "wolf",
+                "hi": "भेड़िया",
+                "gu": "વરુ"
+        },
+        "deer": {
+                "en": "deer",
+                "hi": "हिरण",
+                "gu": "હરણ"
+        },
+        "hare": {
+                "en": "hare",
+                "hi": "खरगोश",
+                "gu": "સસલું"
+        },
+        "mole": {
+                "en": "mole",
+                "hi": "तिल",
+                "gu": "છછુંદર"
+        },
+        "seal": {
+                "en": "seal",
+                "hi": "सील",
+                "gu": "સીલ"
+        },
+        "swan": {
+                "en": "swan",
+                "hi": "हंस",
+                "gu": "હંસ"
+        },
+        "duck": {
+                "en": "duck",
+                "hi": "बत्तख",
+                "gu": "બતક"
+        },
+        "crab": {
+                "en": "crab",
+                "hi": "केकड़ा",
+                "gu": "કરચલો"
+        },
+        "frog": {
+                "en": "frog",
+                "hi": "मेढक",
+                "gu": "દેડકા"
+        },
+        "toad": {
+                "en": "toad",
+                "hi": "टोड",
+                "gu": "દેડકો"
+        },
+        "fish": {
+                "en": "fish",
+                "hi": "मछली",
+                "gu": "માછલી"
+        },
+        "tuna": {
+                "en": "tuna",
+                "hi": "टूना",
+                "gu": "ટુના"
+        },
+        "bass": {
+                "en": "bass",
+                "hi": "बास",
+                "gu": "બાસ"
+        },
+        "carp": {
+                "en": "carp",
+                "hi": "कार्प",
+                "gu": "કાર્પ"
+        },
+        "clam": {
+                "en": "clam",
+                "hi": "क्लैम",
+                "gu": "ક્લેમ"
+        },
+        "gull": {
+                "en": "gull",
+                "hi": "मूर्ख मनुष्य",
+                "gu": "ગુલ"
+        },
+        "crow": {
+                "en": "crow",
+                "hi": "कौवा",
+                "gu": "કાગડો"
+        },
+        "dove": {
+                "en": "dove",
+                "hi": "कबूतर",
+                "gu": "કબૂતર"
+        },
+        "hawk": {
+                "en": "hawk",
+                "hi": "बाज़",
+                "gu": "બાજ"
+        },
+        "kiwi": {
+                "en": "kiwi",
+                "hi": "कीवी",
+                "gu": "કિવિ"
+        },
+        "pony": {
+                "en": "pony",
+                "hi": "टट्टू",
+                "gu": "ટટ્ટુ"
+        },
+        "horse": {
+                "en": "horse",
+                "hi": "घोड़ा",
+                "gu": "ઘોડો"
+        },
+        "zebra": {
+                "en": "zebra",
+                "hi": "ज़ेबरा",
+                "gu": "ઝેબ્રા"
+        },
+        "mouse": {
+                "en": "mouse",
+                "hi": "चूहा",
+                "gu": "ઉંદર"
+        },
+        "camel": {
+                "en": "camel",
+                "hi": "ऊँट",
+                "gu": "ઊંટ"
+        },
+        "tiger": {
+                "en": "tiger",
+                "hi": "बाघ",
+                "gu": "વાઘ"
+        },
+        "otter": {
+                "en": "otter",
+                "hi": "ऊदबिलाव",
+                "gu": "ઓટર"
+        },
+        "panda": {
+                "en": "panda",
+                "hi": "पांडा",
+                "gu": "પાંડા"
+        },
+        "sloth": {
+                "en": "sloth",
+                "hi": "सुस्ती",
+                "gu": "સુસ્તી"
+        },
+        "koala": {
+                "en": "koala",
+                "hi": "कोआला",
+                "gu": "કોઆલા"
+        },
+        "rhino": {
+                "en": "rhino",
+                "hi": "गैंडा",
+                "gu": "ગેંડો"
+        },
+        "hippo": {
+                "en": "hippo",
+                "hi": "दरियाई घोड़ा",
+                "gu": "હિપ્પો"
+        },
+        "shark": {
+                "en": "shark",
+                "hi": "शार्क",
+                "gu": "શાર્ક"
+        },
+        "whale": {
+                "en": "whale",
+                "hi": "व्हेल",
+                "gu": "વ્હેલ"
+        },
+        "snake": {
+                "en": "snake",
+                "hi": "साँप",
+                "gu": "સાપ"
+        },
+        "gecko": {
+                "en": "gecko",
+                "hi": "छिपकली",
+                "gu": "ગેકો"
+        },
+        "robin": {
+                "en": "robin",
+                "hi": "रॉबिन",
+                "gu": "રોબિન"
+        },
+        "eagle": {
+                "en": "eagle",
+                "hi": "चील",
+                "gu": "ગરુડ"
+        },
+        "moth": {
+                "en": "moth",
+                "hi": "कीट",
+                "gu": "શલભ"
+        },
+        "worm": {
+                "en": "worm",
+                "hi": "कृमि",
+                "gu": "કૃમિ"
+        },
+        "snail": {
+                "en": "snail",
+                "hi": "घोंघा",
+                "gu": "ગોકળગાય"
+        },
+        "slug": {
+                "en": "slug",
+                "hi": "स्लग",
+                "gu": "ગોકળગાય"
+        },
+        "llama": {
+                "en": "llama",
+                "hi": "लामा",
+                "gu": "લામા"
+        },
+        "bison": {
+                "en": "bison",
+                "hi": "बाइसन",
+                "gu": "બાઇસન"
+        },
+        "skunk": {
+                "en": "skunk",
+                "hi": "बदमाश",
+                "gu": "સ્કંક"
+        },
+        "moose": {
+                "en": "moose",
+                "hi": "मूस",
+                "gu": "મૂઝ"
+        },
+        "sheep": {
+                "en": "sheep",
+                "hi": "भेड़",
+                "gu": "ઘેટાં"
+        },
+        "goose": {
+                "en": "goose",
+                "hi": "हंस",
+                "gu": "હંસ"
+        },
+        "finch": {
+                "en": "finch",
+                "hi": "फिंच",
+                "gu": "ફિન્ચ"
+        },
+        "quail": {
+                "en": "quail",
+                "hi": "बटेर",
+                "gu": "ક્વેઈલ"
+        },
+        "stork": {
+                "en": "stork",
+                "hi": "सारस",
+                "gu": "સ્ટોર્ક"
+        },
+        "heron": {
+                "en": "heron",
+                "hi": "बगुला",
+                "gu": "બગલા"
+        },
+        "viper": {
+                "en": "viper",
+                "hi": "साँप",
+                "gu": "વાઇપર"
+        },
+        "cobra": {
+                "en": "cobra",
+                "hi": "कोबरा",
+                "gu": "કોબ્રા"
+        },
+        "bag": {
+                "en": "bag",
+                "hi": "थैला",
+                "gu": "થેલી"
+        },
+        "ball": {
+                "en": "ball",
+                "hi": "गेंद",
+                "gu": "બોલ"
+        },
+        "bead": {
+                "en": "bead",
+                "hi": "मनका",
+                "gu": "મણકો"
+        },
+        "bell": {
+                "en": "bell",
+                "hi": "घंटी",
+                "gu": "ઘંટડી"
+        },
+        "belt": {
+                "en": "belt",
+                "hi": "बेल्ट",
+                "gu": "પટ્ટો"
+        },
+        "bike": {
+                "en": "bike",
+                "hi": "बाइक",
+                "gu": "બાઇક"
+        },
+        "bin": {
+                "en": "bin",
+                "hi": "बिन",
+                "gu": "ડબ્બા"
+        },
+        "boat": {
+                "en": "boat",
+                "hi": "नाव",
+                "gu": "હોડી"
+        },
+        "book": {
+                "en": "book",
+                "hi": "किताब",
+                "gu": "પુસ્તક"
+        },
+        "boot": {
+                "en": "boot",
+                "hi": "बूट",
+                "gu": "બુટ"
+        },
+        "bowl": {
+                "en": "bowl",
+                "hi": "कटोरा",
+                "gu": "વાટકી"
+        },
+        "box": {
+                "en": "box",
+                "hi": "बक्सा",
+                "gu": "બોક્સ"
+        },
+        "brush": {
+                "en": "brush",
+                "hi": "ब्रश",
+                "gu": "બ્રશ"
+        },
+        "broom": {
+                "en": "broom",
+                "hi": "झाड़ू",
+                "gu": "સાવરણી"
+        },
+        "bus": {
+                "en": "bus",
+                "hi": "बस",
+                "gu": "બસ"
+        },
+        "cab": {
+                "en": "cab",
+                "hi": "कैब",
+                "gu": "કેબ"
+        },
+        "cage": {
+                "en": "cage",
+                "hi": "पिंजरा",
+                "gu": "પાંજરું"
+        },
+        "cake": {
+                "en": "cake",
+                "hi": "केक",
+                "gu": "કેક"
+        },
+        "can": {
+                "en": "can",
+                "hi": "कर सकते हैं",
+                "gu": "કરી શકો છો"
+        },
+        "cap": {
+                "en": "cap",
+                "hi": "टोपी",
+                "gu": "ટોપી"
+        },
+        "card": {
+                "en": "card",
+                "hi": "कार्ड",
+                "gu": "કાર્ડ"
+        },
+        "cart": {
+                "en": "cart",
+                "hi": "गाड़ी",
+                "gu": "કાર્ટ"
+        },
+        "case": {
+                "en": "case",
+                "hi": "मामला",
+                "gu": "કેસ"
+        },
+        "chair": {
+                "en": "chair",
+                "hi": "कुर्सी",
+                "gu": "ખુરશી"
+        },
+        "chest": {
+                "en": "chest",
+                "hi": "छाती",
+                "gu": "છાતી"
+        },
+        "clock": {
+                "en": "clock",
+                "hi": "घड़ी",
+                "gu": "ઘડિયાળ"
+        },
+        "comb": {
+                "en": "comb",
+                "hi": "कंघी",
+                "gu": "કાંસકો"
+        },
+        "cup": {
+                "en": "cup",
+                "hi": "कप",
+                "gu": "કપ"
+        },
+        "desk": {
+                "en": "desk",
+                "hi": "डेस्क",
+                "gu": "ડેસ્ક"
+        },
+        "dish": {
+                "en": "dish",
+                "hi": "पकवान",
+                "gu": "વાનગી"
+        },
+        "doll": {
+                "en": "doll",
+                "hi": "गुड़िया",
+                "gu": "ઢીંગલી"
+        },
+        "door": {
+                "en": "door",
+                "hi": "दरवाज़ा",
+                "gu": "દરવાજો"
+        },
+        "drum": {
+                "en": "drum",
+                "hi": "ढोल",
+                "gu": "ડ્રમ"
+        },
+        "fan": {
+                "en": "fan",
+                "hi": "पंखा",
+                "gu": "ચાહક"
+        },
+        "flag": {
+                "en": "flag",
+                "hi": "झंडा",
+                "gu": "ધ્વજ"
+        },
+        "flute": {
+                "en": "flute",
+                "hi": "बांसुरी",
+                "gu": "વાંસળી"
+        },
+        "fork": {
+                "en": "fork",
+                "hi": "कांटा",
+                "gu": "કાંટો"
+        },
+        "game": {
+                "en": "game",
+                "hi": "खेल",
+                "gu": "રમત"
+        },
+        "gift": {
+                "en": "gift",
+                "hi": "उपहार",
+                "gu": "ભેટ"
+        },
+        "glass": {
+                "en": "glass",
+                "hi": "कांच",
+                "gu": "કાચ"
+        },
+        "globe": {
+                "en": "globe",
+                "hi": "ग्लोब",
+                "gu": "ગ્લોબ"
+        },
+        "glue": {
+                "en": "glue",
+                "hi": "गोंद",
+                "gu": "ગુંદર"
+        },
+        "hat": {
+                "en": "hat",
+                "hi": "टोपी",
+                "gu": "ટોપી"
+        },
+        "hook": {
+                "en": "hook",
+                "hi": "हुक",
+                "gu": "હૂક"
+        },
+        "jar": {
+                "en": "jar",
+                "hi": "जार",
+                "gu": "જાર"
+        },
+        "kite": {
+                "en": "kite",
+                "hi": "पतंग",
+                "gu": "પતંગ"
+        },
+        "lamp": {
+                "en": "lamp",
+                "hi": "दीपक",
+                "gu": "દીવો"
+        },
+        "lock": {
+                "en": "lock",
+                "hi": "ताला",
+                "gu": "તાળું"
+        },
+        "map": {
+                "en": "map",
+                "hi": "नक्शा",
+                "gu": "નકશો"
+        },
+        "mask": {
+                "en": "mask",
+                "hi": "मुखौटा",
+                "gu": "માસ્ક"
+        },
+        "mat": {
+                "en": "mat",
+                "hi": "चटाई",
+                "gu": "સાદડી"
+        },
+        "mug": {
+                "en": "mug",
+                "hi": "मग",
+                "gu": "પ્યાલો"
+        },
+        "nail": {
+                "en": "nail",
+                "hi": "कील",
+                "gu": "ખીલી"
+        },
+        "net": {
+                "en": "net",
+                "hi": "नेट",
+                "gu": "ચોખ્ખી"
+        },
+        "pan": {
+                "en": "pan",
+                "hi": "पैन",
+                "gu": "પાન"
+        },
+        "pen": {
+                "en": "pen",
+                "hi": "कलम",
+                "gu": "પેન"
+        },
+        "pin": {
+                "en": "pin",
+                "hi": "पिन",
+                "gu": "પિન"
+        },
+        "pot": {
+                "en": "pot",
+                "hi": "बर्तन",
+                "gu": "પોટ"
+        },
+        "ring": {
+                "en": "ring",
+                "hi": "अंगूठी",
+                "gu": "રિંગ"
+        },
+        "rope": {
+                "en": "rope",
+                "hi": "रस्सी",
+                "gu": "દોરડું"
+        },
+        "rug": {
+                "en": "rug",
+                "hi": "गलीचा",
+                "gu": "ગાદલું"
+        },
+        "sack": {
+                "en": "sack",
+                "hi": "बोरी",
+                "gu": "કોથળો"
+        },
+        "saw": {
+                "en": "saw",
+                "hi": "देखा",
+                "gu": "જોયું"
+        },
+        "shoe": {
+                "en": "shoe",
+                "hi": "जूता",
+                "gu": "જૂતા"
+        },
+        "sock": {
+                "en": "sock",
+                "hi": "मोजा",
+                "gu": "મોજાં"
+        },
+        "spoon": {
+                "en": "spoon",
+                "hi": "चम्मच",
+                "gu": "ચમચી"
+        },
+        "stool": {
+                "en": "stool",
+                "hi": "मल",
+                "gu": "સ્ટૂલ"
+        },
+        "table": {
+                "en": "table",
+                "hi": "टेबल",
+                "gu": "ટેબલ"
+        },
+        "tent": {
+                "en": "tent",
+                "hi": "तंबू",
+                "gu": "તંબુ"
+        },
+        "toy": {
+                "en": "toy",
+                "hi": "खिलौना",
+                "gu": "રમકડું"
+        },
+        "tray": {
+                "en": "tray",
+                "hi": "ट्रे",
+                "gu": "ટ્રે"
+        },
+        "tub": {
+                "en": "tub",
+                "hi": "टब",
+                "gu": "ટબ"
+        },
+        "vase": {
+                "en": "vase",
+                "hi": "फूलदान",
+                "gu": "ફૂલદાની"
+        },
+        "wall": {
+                "en": "wall",
+                "hi": "दीवार",
+                "gu": "દિવાલ"
+        },
+        "watch": {
+                "en": "watch",
+                "hi": "देखो",
+                "gu": "ઘડિયાળ"
+        },
+        "wheel": {
+                "en": "wheel",
+                "hi": "पहिया",
+                "gu": "વ્હીલ"
+        },
+        "apple": {
+                "en": "apple",
+                "hi": "सेब",
+                "gu": "સફરજન"
+        },
+        "berry": {
+                "en": "berry",
+                "hi": "बेरी",
+                "gu": "બેરી"
+        },
+        "bread": {
+                "en": "bread",
+                "hi": "रोटी",
+                "gu": "બ્રેડ"
+        },
+        "bun": {
+                "en": "bun",
+                "hi": "बन",
+                "gu": "બન"
+        },
+        "candy": {
+                "en": "candy",
+                "hi": "कैंडी",
+                "gu": "કેન્ડી"
+        },
+        "chip": {
+                "en": "chip",
+                "hi": "चिप",
+                "gu": "ચિપ"
+        },
+        "corn": {
+                "en": "corn",
+                "hi": "मक्का",
+                "gu": "મકાઈ"
+        },
+        "egg": {
+                "en": "egg",
+                "hi": "अंडा",
+                "gu": "ઇંડા"
+        },
+        "grape": {
+                "en": "grape",
+                "hi": "अंगूर",
+                "gu": "દ્રાક્ષ"
+        },
+        "lemon": {
+                "en": "lemon",
+                "hi": "नींबू",
+                "gu": "લીંબુ"
+        },
+        "lime": {
+                "en": "lime",
+                "hi": "चूना",
+                "gu": "ચૂનો"
+        },
+        "mango": {
+                "en": "mango",
+                "hi": "आम",
+                "gu": "કેરી"
+        },
+        "melon": {
+                "en": "melon",
+                "hi": "खरबूजा",
+                "gu": "તરબૂચ"
+        },
+        "peach": {
+                "en": "peach",
+                "hi": "आड़ू",
+                "gu": "આલૂ"
+        },
+        "pear": {
+                "en": "pear",
+                "hi": "नाशपाती",
+                "gu": "પિઅર"
+        },
+        "plum": {
+                "en": "plum",
+                "hi": "बेर",
+                "gu": "આલુ"
+        },
+        "rice": {
+                "en": "rice",
+                "hi": "चावल",
+                "gu": "ચોખા"
+        },
+        "roll": {
+                "en": "roll",
+                "hi": "रोल",
+                "gu": "રોલ"
+        },
+        "soup": {
+                "en": "soup",
+                "hi": "सूप",
+                "gu": "સૂપ"
+        },
+        "toast": {
+                "en": "toast",
+                "hi": "टोस्ट",
+                "gu": "ટોસ્ટ"
+        },
+        "wheat": {
+                "en": "wheat",
+                "hi": "गेहूं",
+                "gu": "ઘઉં"
+        },
+        "bean": {
+                "en": "bean",
+                "hi": "बीन",
+                "gu": "કઠોળ"
+        },
+        "pea": {
+                "en": "pea",
+                "hi": "मटर",
+                "gu": "વટાણા"
+        },
+        "nut": {
+                "en": "nut",
+                "hi": "अखरोट",
+                "gu": "અખરોટ"
+        },
+        "seed": {
+                "en": "seed",
+                "hi": "बीज",
+                "gu": "બીજ"
+        },
+        "yam": {
+                "en": "yam",
+                "hi": "रतालू",
+                "gu": "યામ"
+        },
+        "fig": {
+                "en": "fig",
+                "hi": "अंजीर",
+                "gu": "અંજીર"
+        },
+        "date": {
+                "en": "date",
+                "hi": "दिनांक",
+                "gu": "તારીખ"
+        },
+        "olive": {
+                "en": "olive",
+                "hi": "जैतून",
+                "gu": "ઓલિવ"
+        },
+        "onion": {
+                "en": "onion",
+                "hi": "प्याज",
+                "gu": "ડુંગળી"
+        },
+        "pasta": {
+                "en": "pasta",
+                "hi": "पास्ता",
+                "gu": "પાસ્તા"
+        },
+        "pizza": {
+                "en": "pizza",
+                "hi": "पिज़्ज़ा",
+                "gu": "પિઝા"
+        },
+        "salad": {
+                "en": "salad",
+                "hi": "सलाद",
+                "gu": "કચુંબર"
+        },
+        "steak": {
+                "en": "steak",
+                "hi": "स्टेक",
+                "gu": "ટુકડો"
+        },
+        "taco": {
+                "en": "taco",
+                "hi": "टैको",
+                "gu": "ટેકો"
+        },
+        "arm": {
+                "en": "arm",
+                "hi": "बांह",
+                "gu": "હાથ"
+        },
+        "ear": {
+                "en": "ear",
+                "hi": "कान",
+                "gu": "કાન"
+        },
+        "eye": {
+                "en": "eye",
+                "hi": "आंख",
+                "gu": "આંખ"
+        },
+        "leg": {
+                "en": "leg",
+                "hi": "पैर",
+                "gu": "પગ"
+        },
+        "lip": {
+                "en": "lip",
+                "hi": "होंठ",
+                "gu": "હોઠ"
+        },
+        "rib": {
+                "en": "rib",
+                "hi": "पसली",
+                "gu": "પાંસળી"
+        },
+        "toe": {
+                "en": "toe",
+                "hi": "पैर का अंगूठा",
+                "gu": "અંગૂઠો"
+        },
+        "hand": {
+                "en": "hand",
+                "hi": "हाथ",
+                "gu": "હાથ"
+        },
+        "head": {
+                "en": "head",
+                "hi": "सिर",
+                "gu": "વડા"
+        },
+        "hair": {
+                "en": "hair",
+                "hi": "बाल",
+                "gu": "વાળ"
+        },
+        "nose": {
+                "en": "nose",
+                "hi": "नाक",
+                "gu": "નાક"
+        },
+        "neck": {
+                "en": "neck",
+                "hi": "गर्दन",
+                "gu": "ગરદન"
+        },
+        "back": {
+                "en": "back",
+                "hi": "वापस",
+                "gu": "પાછા"
+        },
+        "foot": {
+                "en": "foot",
+                "hi": "पैर",
+                "gu": "પગ"
+        },
+        "knee": {
+                "en": "knee",
+                "hi": "घुटना",
+                "gu": "ઘૂંટણ"
+        },
+        "skin": {
+                "en": "skin",
+                "hi": "त्वचा",
+                "gu": "ત્વચા"
+        },
+        "thumb": {
+                "en": "thumb",
+                "hi": "अंगूठा",
+                "gu": "અંગૂઠો"
+        },
+        "tooth": {
+                "en": "tooth",
+                "hi": "दांत",
+                "gu": "દાંત"
+        },
+        "baby": {
+                "en": "baby",
+                "hi": "बेबी",
+                "gu": "બાળક"
+        },
+        "boy": {
+                "en": "boy",
+                "hi": "लड़का",
+                "gu": "છોકરો"
+        },
+        "girl": {
+                "en": "girl",
+                "hi": "लड़की",
+                "gu": "છોકરી"
+        },
+        "man": {
+                "en": "man",
+                "hi": "आदमी",
+                "gu": "માણસ"
+        },
+        "mom": {
+                "en": "mom",
+                "hi": "माँ",
+                "gu": "મમ્મી"
+        },
+        "dad": {
+                "en": "dad",
+                "hi": "पिताजी",
+                "gu": "પિતા"
+        },
+        "king": {
+                "en": "king",
+                "hi": "राजा",
+                "gu": "રાજા"
+        },
+        "queen": {
+                "en": "queen",
+                "hi": "रानी",
+                "gu": "રાણી"
+        },
+        "clown": {
+                "en": "clown",
+                "hi": "विदूषक",
+                "gu": "રંગલો"
+        },
+        "chef": {
+                "en": "chef",
+                "hi": "महाराज",
+                "gu": "રસોઇયા"
+        },
+        "nurse": {
+                "en": "nurse",
+                "hi": "नर्स",
+                "gu": "નર્સ"
+        },
+        "air": {
+                "en": "air",
+                "hi": "वायु",
+                "gu": "હવા"
+        },
+        "ash": {
+                "en": "ash",
+                "hi": "राख",
+                "gu": "રાખ"
+        },
+        "bay": {
+                "en": "bay",
+                "hi": "खाड़ी",
+                "gu": "ખાડી"
+        },
+        "beach": {
+                "en": "beach",
+                "hi": "समुद्रतट",
+                "gu": "બીચ"
+        },
+        "cave": {
+                "en": "cave",
+                "hi": "गुफा",
+                "gu": "ગુફા"
+        },
+        "cloud": {
+                "en": "cloud",
+                "hi": "बादल",
+                "gu": "વાદળ"
+        },
+        "dirt": {
+                "en": "dirt",
+                "hi": "गंदगी",
+                "gu": "ગંદકી"
+        },
+        "dust": {
+                "en": "dust",
+                "hi": "धूल",
+                "gu": "ધૂળ"
+        },
+        "field": {
+                "en": "field",
+                "hi": "फ़ील्ड",
+                "gu": "ક્ષેત્ર"
+        },
+        "fire": {
+                "en": "fire",
+                "hi": "आग",
+                "gu": "આગ"
+        },
+        "fog": {
+                "en": "fog",
+                "hi": "कोहरा",
+                "gu": "ધુમ્મસ"
+        },
+        "grass": {
+                "en": "grass",
+                "hi": "घास",
+                "gu": "ઘાસ"
+        },
+        "hill": {
+                "en": "hill",
+                "hi": "पहाड़ी",
+                "gu": "ટેકરી"
+        },
+        "ice": {
+                "en": "ice",
+                "hi": "बर्फ",
+                "gu": "બરફ"
+        },
+        "lake": {
+                "en": "lake",
+                "hi": "झील",
+                "gu": "તળાવ"
+        },
+        "leaf": {
+                "en": "leaf",
+                "hi": "पत्ती",
+                "gu": "પર્ણ"
+        },
+        "log": {
+                "en": "log",
+                "hi": "लॉग",
+                "gu": "લોગ"
+        },
+        "mud": {
+                "en": "mud",
+                "hi": "कीचड़",
+                "gu": "કાદવ"
+        },
+        "pond": {
+                "en": "pond",
+                "hi": "तालाब",
+                "gu": "તળાવ"
+        },
+        "rain": {
+                "en": "rain",
+                "hi": "बारिश",
+                "gu": "વરસાદ"
+        },
+        "rock": {
+                "en": "rock",
+                "hi": "चट्टान",
+                "gu": "ખડક"
+        },
+        "sand": {
+                "en": "sand",
+                "hi": "रेत",
+                "gu": "રેતી"
+        },
+        "sea": {
+                "en": "sea",
+                "hi": "समुद्र",
+                "gu": "સમુદ્ર"
+        },
+        "snow": {
+                "en": "snow",
+                "hi": "बर्फ",
+                "gu": "બરફ"
+        },
+        "soil": {
+                "en": "soil",
+                "hi": "मिट्टी",
+                "gu": "માટી"
+        },
+        "star": {
+                "en": "star",
+                "hi": "तारा",
+                "gu": "તારો"
+        },
+        "stone": {
+                "en": "stone",
+                "hi": "पत्थर",
+                "gu": "પથ્થર"
+        },
+        "sun": {
+                "en": "sun",
+                "hi": "सूरज",
+                "gu": "સૂર્ય"
+        },
+        "tree": {
+                "en": "tree",
+                "hi": "पेड़",
+                "gu": "વૃક્ષ"
+        },
+        "wave": {
+                "en": "wave",
+                "hi": "लहर",
+                "gu": "તરંગ"
+        },
+        "wind": {
+                "en": "wind",
+                "hi": "हवा",
+                "gu": "પવન"
+        },
+        "wood": {
+                "en": "wood",
+                "hi": "लकड़ी",
+                "gu": "લાકડું"
+        },
+        "moon": {
+                "en": "moon",
+                "hi": "चांद",
+                "gu": "ચંદ્ર"
+        },
+        "river": {
+                "en": "river",
+                "hi": "नदी",
+                "gu": "નદી"
+        },
+        "plant": {
+                "en": "plant",
+                "hi": "पौधा",
+                "gu": "છોડ"
+        },
+        "rose": {
+                "en": "rose",
+                "hi": "गुलाब",
+                "gu": "ગુલાબ"
+        },
+        "tulip": {
+                "en": "tulip",
+                "hi": "ट्यूलिप",
+                "gu": "ટ્યૂલિપ"
+        },
+        "shell": {
+                "en": "shell",
+                "hi": "खोल",
+                "gu": "શેલ"
+        },
+        "pearl": {
+                "en": "pearl",
+                "hi": "मोती",
+                "gu": "મોતી"
+        },
+        "coral": {
+                "en": "coral",
+                "hi": "मूंगा",
+                "gu": "કોરલ"
+        },
+        "nest": {
+                "en": "nest",
+                "hi": "घोंसला",
+                "gu": "માળો"
+        },
+        "web": {
+                "en": "web",
+                "hi": "वेब",
+                "gu": "વેબ"
+        },
+        "den": {
+                "en": "den",
+                "hi": "माँद",
+                "gu": "ડેન"
+        },
+        "farm": {
+                "en": "farm",
+                "hi": "खेत",
+                "gu": "ખેતર"
+        },
+        "barn": {
+                "en": "barn",
+                "hi": "खलिहान",
+                "gu": "કોઠાર"
+        },
+        "hut": {
+                "en": "hut",
+                "hi": "झोपड़ी",
+                "gu": "ઝૂંપડી"
+        },
+        "home": {
+                "en": "home",
+                "hi": "घर",
+                "gu": "ઘર"
+        },
+        "house": {
+                "en": "house",
+                "hi": "घर",
+                "gu": "ઘર"
+        },
+        "room": {
+                "en": "room",
+                "hi": "कमरा",
+                "gu": "ઓરડો"
+        },
+        "road": {
+                "en": "road",
+                "hi": "सड़क",
+                "gu": "માર્ગ"
+        },
+        "path": {
+                "en": "path",
+                "hi": "पथ",
+                "gu": "માર્ગ"
+        },
+        "gate": {
+                "en": "gate",
+                "hi": "द्वार",
+                "gu": "દરવાજો"
+        },
+        "fence": {
+                "en": "fence",
+                "hi": "बाड़",
+                "gu": "વાડ"
+        },
+        "shop": {
+                "en": "shop",
+                "hi": "दुकान",
+                "gu": "દુકાન"
+        },
+        "park": {
+                "en": "park",
+                "hi": "पार्क",
+                "gu": "પાર્ક"
+        },
+        "zoo": {
+                "en": "zoo",
+                "hi": "चिड़ियाघर",
+                "gu": "પ્રાણી સંગ્રહાલય"
+        },
+        "bank": {
+                "en": "bank",
+                "hi": "बैंक",
+                "gu": "બેંક"
+        },
+        "mill": {
+                "en": "mill",
+                "hi": "मिल",
+                "gu": "મિલ"
+        },
+        "dock": {
+                "en": "dock",
+                "hi": "गोदी",
+                "gu": "ગોદી"
+        },
+        "port": {
+                "en": "port",
+                "hi": "बंदरगाह",
+                "gu": "બંદર"
+        },
+        "angel": {
+                "en": "angel",
+                "hi": "देवदूत",
+                "gu": "દેવદૂત"
+        },
+        "robot": {
+                "en": "robot",
+                "hi": "रोबोट",
+                "gu": "રોબોટ"
+        },
+        "ghost": {
+                "en": "ghost",
+                "hi": "भूत",
+                "gu": "ભૂત"
+        },
+        "fairy": {
+                "en": "fairy",
+                "hi": "परी",
+                "gu": "પરી"
+        },
+        "giant": {
+                "en": "giant",
+                "hi": "विशाल",
+                "gu": "વિશાળ"
+        },
+        "dwarf": {
+                "en": "dwarf",
+                "hi": "बौना",
+                "gu": "વામન"
+        },
+        "elf": {
+                "en": "elf",
+                "hi": "योगिनी",
+                "gu": "પિશાચ"
+        },
+        "crown": {
+                "en": "crown",
+                "hi": "ताज",
+                "gu": "તાજ"
+        },
+        "coin": {
+                "en": "coin",
+                "hi": "सिक्का",
+                "gu": "સિક્કો"
+        },
+        "key": {
+                "en": "key",
+                "hi": "कुंजी",
+                "gu": "ચાવી"
+        },
+        "medal": {
+                "en": "medal",
+                "hi": "पदक",
+                "gu": "ચંદ્રક"
+        },
+        "photo": {
+                "en": "photo",
+                "hi": "फोटो",
+                "gu": "ફોટો"
+        },
+        "radio": {
+                "en": "radio",
+                "hi": "रेडियो",
+                "gu": "રેડિયો"
+        },
+        "phone": {
+                "en": "phone",
+                "hi": "फ़ोन",
+                "gu": "ફોન"
+        },
+        "train": {
+                "en": "train",
+                "hi": "ट्रेन",
+                "gu": "ટ્રેન"
+        },
+        "plane": {
+                "en": "plane",
+                "hi": "विमान",
+                "gu": "વિમાન"
+        },
+        "truck": {
+                "en": "truck",
+                "hi": "ट्रक",
+                "gu": "ટ્રક"
+        },
+        "wagon": {
+                "en": "wagon",
+                "hi": "वैगन",
+                "gu": "વેગન"
+        },
+        "acorn": {
+                "en": "acorn",
+                "hi": "बलूत का फल",
+                "gu": "એકોર્ન"
+        },
+        "algae": {
+                "en": "algae",
+                "hi": "शैवाल",
+                "gu": "શેવાળ"
+        },
+        "birch": {
+                "en": "birch",
+                "hi": "सन्टी",
+                "gu": "બિર્ચ"
+        },
+        "bloom": {
+                "en": "bloom",
+                "hi": "खिलना",
+                "gu": "મોર"
+        },
+        "bush": {
+                "en": "bush",
+                "hi": "झाड़ी",
+                "gu": "ઝાડવું"
+        },
+        "cane": {
+                "en": "cane",
+                "hi": "बेंत",
+                "gu": "શેરડી"
+        },
+        "clove": {
+                "en": "clove",
+                "hi": "लौंग",
+                "gu": "લવિંગ"
+        },
+        "daisy": {
+                "en": "daisy",
+                "hi": "डेज़ी",
+                "gu": "ડેઝી"
+        },
+        "fern": {
+                "en": "fern",
+                "hi": "फ़र्न",
+                "gu": "ફર્ન"
+        },
+        "moss": {
+                "en": "moss",
+                "hi": "काई",
+                "gu": "શેવાળ"
+        },
+        "pine": {
+                "en": "pine",
+                "hi": "चीड़",
+                "gu": "પાઈન"
+        },
+        "reed": {
+                "en": "reed",
+                "hi": "रीड",
+                "gu": "રીડ"
+        },
+        "root": {
+                "en": "root",
+                "hi": "जड़",
+                "gu": "મૂળ"
+        },
+        "thorn": {
+                "en": "thorn",
+                "hi": "कांटा",
+                "gu": "કાંટો"
+        },
+        "vine": {
+                "en": "vine",
+                "hi": "बेल",
+                "gu": "વેલો"
+        },
+        "brick": {
+                "en": "brick",
+                "hi": "ईंट",
+                "gu": "ઈંટ"
+        },
+        "cabin": {
+                "en": "cabin",
+                "hi": "केबिन",
+                "gu": "કેબિન"
+        },
+        "crate": {
+                "en": "crate",
+                "hi": "टोकरा",
+                "gu": "ક્રેટ"
+        },
+        "plank": {
+                "en": "plank",
+                "hi": "तख़्ता",
+                "gu": "પાટિયું"
+        },
+        "shelf": {
+                "en": "shelf",
+                "hi": "शेल्फ",
+                "gu": "શેલ્ફ"
+        },
+        "sign": {
+                "en": "sign",
+                "hi": "संकेत",
+                "gu": "ચિહ્ન"
+        },
+        "swing": {
+                "en": "swing",
+                "hi": "झूला",
+                "gu": "સ્વિંગ"
+        },
+        "bench": {
+                "en": "bench",
+                "hi": "बेंच",
+                "gu": "બેન્ચ"
+        },
+        "chain": {
+                "en": "chain",
+                "hi": "श्रृंखला",
+                "gu": "સાંકળ"
+        },
+        "chalk": {
+                "en": "chalk",
+                "hi": "चाक",
+                "gu": "ચાક"
+        },
+        "clip": {
+                "en": "clip",
+                "hi": "क्लिप",
+                "gu": "ક્લિપ"
+        },
+        "dice": {
+                "en": "dice",
+                "hi": "पासा",
+                "gu": "ડાઇસ"
+        },
+        "file": {
+                "en": "file",
+                "hi": "फ़ाइल",
+                "gu": "ફાઇલ"
+        },
+        "frame": {
+                "en": "frame",
+                "hi": "ढाँचा",
+                "gu": "ફ્રેમ"
+        },
+        "grill": {
+                "en": "grill",
+                "hi": "ग्रिल",
+                "gu": "જાળી"
+        },
+        "hinge": {
+                "en": "hinge",
+                "hi": "काज",
+                "gu": "મિજાગરું"
+        },
+        "hose": {
+                "en": "hose",
+                "hi": "नली",
+                "gu": "નળી"
+        },
+        "knob": {
+                "en": "knob",
+                "hi": "घुंडी",
+                "gu": "નોબ"
+        },
+        "latch": {
+                "en": "latch",
+                "hi": "कुंडी",
+                "gu": "લૅચ"
+        },
+        "lid": {
+                "en": "lid",
+                "hi": "ढक्कन",
+                "gu": "ઢાંકણ"
+        },
+        "mail": {
+                "en": "mail",
+                "hi": "मेल",
+                "gu": "ટપાલ"
+        },
+        "oven": {
+                "en": "oven",
+                "hi": "ओवन",
+                "gu": "પકાવવાની નાની ભઠ્ઠી"
+        },
+        "paint": {
+                "en": "paint",
+                "hi": "पेंट",
+                "gu": "રંગ"
+        },
+        "pail": {
+                "en": "pail",
+                "hi": "बाल्टी",
+                "gu": "બાટલી"
+        },
+        "plate": {
+                "en": "plate",
+                "hi": "प्लेट",
+                "gu": "પ્લેટ"
+        },
+        "plug": {
+                "en": "plug",
+                "hi": "प्लग",
+                "gu": "પ્લગ"
+        },
+        "purse": {
+                "en": "purse",
+                "hi": "पर्स",
+                "gu": "પર્સ"
+        },
+        "quilt": {
+                "en": "quilt",
+                "hi": "रजाई",
+                "gu": "રજાઇ"
+        },
+        "razor": {
+                "en": "razor",
+                "hi": "उस्तरा",
+                "gu": "રેઝર"
+        },
+        "ruler": {
+                "en": "ruler",
+                "hi": "शासक",
+                "gu": "શાસક"
+        },
+        "screw": {
+                "en": "screw",
+                "hi": "पेंच",
+                "gu": "સ્ક્રૂ"
+        },
+        "slate": {
+                "en": "slate",
+                "hi": "स्लेट",
+                "gu": "સ્લેટ"
+        },
+        "soap": {
+                "en": "soap",
+                "hi": "साबुन",
+                "gu": "સાબુ"
+        },
+        "stamp": {
+                "en": "stamp",
+                "hi": "मोहर",
+                "gu": "સ્ટેમ્પ"
+        },
+        "tile": {
+                "en": "tile",
+                "hi": "टाइल",
+                "gu": "ટાઇલ"
+        },
+        "torch": {
+                "en": "torch",
+                "hi": "मशाल",
+                "gu": "ટોર્ચ"
+        },
+        "towel": {
+                "en": "towel",
+                "hi": "तौलिया",
+                "gu": "ટુવાલ"
+        },
+        "wire": {
+                "en": "wire",
+                "hi": "तार",
+                "gu": "વાયર"
+        },
+        "cacao": {
+                "en": "cacao",
+                "hi": "कोको",
+                "gu": "કોકો"
+        },
+        "curry": {
+                "en": "curry",
+                "hi": "करी",
+                "gu": "કરી"
+        },
+        "flour": {
+                "en": "flour",
+                "hi": "आटा",
+                "gu": "લોટ"
+        },
+        "honey": {
+                "en": "honey",
+                "hi": "प्रिये",
+                "gu": "મધ"
+        },
+        "jam": {
+                "en": "jam",
+                "hi": "जाम",
+                "gu": "જામ"
+        },
+        "jelly": {
+                "en": "jelly",
+                "hi": "जेली",
+                "gu": "જેલી"
+        },
+        "juice": {
+                "en": "juice",
+                "hi": "रस",
+                "gu": "રસ"
+        },
+        "milk": {
+                "en": "milk",
+                "hi": "दूध",
+                "gu": "દૂધ"
+        },
+        "cream": {
+                "en": "cream",
+                "hi": "क्रीम",
+                "gu": "ક્રીમ"
+        },
+        "sugar": {
+                "en": "sugar",
+                "hi": "चीनी",
+                "gu": "ખાંડ"
+        },
+        "syrup": {
+                "en": "syrup",
+                "hi": "सिरप",
+                "gu": "ચાસણી"
+        },
+        "water": {
+                "en": "water",
+                "hi": "पानी",
+                "gu": "પાણી"
+        },
+        "cider": {
+                "en": "cider",
+                "hi": "साइडर",
+                "gu": "સાઇડર"
+        },
+        "cocoa": {
+                "en": "cocoa",
+                "hi": "कोको",
+                "gu": "કોકો"
+        },
+        "bacon": {
+                "en": "bacon",
+                "hi": "बेकन",
+                "gu": "બેકન"
+        },
+        "bagel": {
+                "en": "bagel",
+                "hi": "बेगेल",
+                "gu": "બેગલ"
+        },
+        "basil": {
+                "en": "basil",
+                "hi": "तुलसी",
+                "gu": "તુલસીનો છોડ"
+        },
+        "broth": {
+                "en": "broth",
+                "hi": "शोरबा",
+                "gu": "સૂપ"
+        },
+        "chili": {
+                "en": "chili",
+                "hi": "मिर्च",
+                "gu": "મરચું"
+        },
+        "donut": {
+                "en": "donut",
+                "hi": "डोनट",
+                "gu": "મીઠાઈ"
+        },
+        "fries": {
+                "en": "fries",
+                "hi": "फ्राइज़",
+                "gu": "ફ્રાઈસ"
+        },
+        "fruit": {
+                "en": "fruit",
+                "hi": "फल",
+                "gu": "ફળ"
+        },
+        "gravy": {
+                "en": "gravy",
+                "hi": "ग्रेवी",
+                "gu": "ગ્રેવી"
+        },
+        "oats": {
+                "en": "oats",
+                "hi": "जई",
+                "gu": "ઓટ્સ"
+        },
+        "sauce": {
+                "en": "sauce",
+                "hi": "चटनी",
+                "gu": "ચટણી"
+        },
+        "spice": {
+                "en": "spice",
+                "hi": "मसाला",
+                "gu": "મસાલા"
+        },
+        "sushi": {
+                "en": "sushi",
+                "hi": "सुशी",
+                "gu": "સુશી"
+        },
+        "wafer": {
+                "en": "wafer",
+                "hi": "वेफर",
+                "gu": "વેફર"
+        },
+        "ankle": {
+                "en": "ankle",
+                "hi": "टखना",
+                "gu": "પગની ઘૂંટી"
+        },
+        "beard": {
+                "en": "beard",
+                "hi": "दाढ़ी",
+                "gu": "દાઢી"
+        },
+        "brain": {
+                "en": "brain",
+                "hi": "मस्तिष्क",
+                "gu": "મગજ"
+        },
+        "cheek": {
+                "en": "cheek",
+                "hi": "गाल",
+                "gu": "ગાલ"
+        },
+        "chin": {
+                "en": "chin",
+                "hi": "ठुड्डी",
+                "gu": "રામરામ"
+        },
+        "elbow": {
+                "en": "elbow",
+                "hi": "कोहनी",
+                "gu": "કોણી"
+        },
+        "face": {
+                "en": "face",
+                "hi": "चेहरा",
+                "gu": "ચહેરો"
+        },
+        "fist": {
+                "en": "fist",
+                "hi": "मुट्ठी",
+                "gu": "મુઠ્ઠી"
+        },
+        "heel": {
+                "en": "heel",
+                "hi": "एड़ी",
+                "gu": "હીલ"
+        },
+        "hip": {
+                "en": "hip",
+                "hi": "कूल्हा",
+                "gu": "હિપ"
+        },
+        "lung": {
+                "en": "lung",
+                "hi": "फेफड़ा",
+                "gu": "ફેફસાં"
+        },
+        "mouth": {
+                "en": "mouth",
+                "hi": "मुँह",
+                "gu": "મોં"
+        },
+        "palm": {
+                "en": "palm",
+                "hi": "हथेली",
+                "gu": "હથેળી"
+        },
+        "skull": {
+                "en": "skull",
+                "hi": "खोपड़ी",
+                "gu": "ખોપરી"
+        },
+        "smile": {
+                "en": "smile",
+                "hi": "मुस्कुराओ",
+                "gu": "સ્મિત"
+        },
+        "waist": {
+                "en": "waist",
+                "hi": "कमर",
+                "gu": "કમર"
+        },
+        "wrist": {
+                "en": "wrist",
+                "hi": "कलाई",
+                "gu": "કાંડા"
+        },
+        "bride": {
+                "en": "bride",
+                "hi": "दुल्हन",
+                "gu": "કન્યા"
+        },
+        "groom": {
+                "en": "groom",
+                "hi": "दूल्हा",
+                "gu": "વર"
+        },
+        "monk": {
+                "en": "monk",
+                "hi": "साधु",
+                "gu": "સાધુ"
+        },
+        "nun": {
+                "en": "nun",
+                "hi": "नन",
+                "gu": "સાધ્વી"
+        },
+        "pilot": {
+                "en": "pilot",
+                "hi": "पायलट",
+                "gu": "પાયલોટ"
+        },
+        "guard": {
+                "en": "guard",
+                "hi": "रक्षक",
+                "gu": "રક્ષક"
+        },
+        "judge": {
+                "en": "judge",
+                "hi": "न्यायाधीश",
+                "gu": "ન્યાયાધીશ"
+        },
+        "mayor": {
+                "en": "mayor",
+                "hi": "मेयर",
+                "gu": "મેયર"
+        },
+        "saint": {
+                "en": "saint",
+                "hi": "संत",
+                "gu": "સંત"
+        },
+        "witch": {
+                "en": "witch",
+                "hi": "डायन",
+                "gu": "ચૂડેલ"
+        },
+        "altar": {
+                "en": "altar",
+                "hi": "वेदी",
+                "gu": "વેદી"
+        },
+        "booth": {
+                "en": "booth",
+                "hi": "बूथ",
+                "gu": "મથક"
+        },
+        "camp": {
+                "en": "camp",
+                "hi": "शिविर",
+                "gu": "શિબિર"
+        },
+        "court": {
+                "en": "court",
+                "hi": "अदालत",
+                "gu": "કોર્ટ"
+        },
+        "depot": {
+                "en": "depot",
+                "hi": "डिपो",
+                "gu": "ડેપો"
+        },
+        "hotel": {
+                "en": "hotel",
+                "hi": "होटल",
+                "gu": "હોટેલ"
+        },
+        "inn": {
+                "en": "inn",
+                "hi": "सराय",
+                "gu": "ધર્મશાળા"
+        },
+        "lodge": {
+                "en": "lodge",
+                "hi": "लॉज",
+                "gu": "લોજ"
+        },
+        "motel": {
+                "en": "motel",
+                "hi": "मोटल",
+                "gu": "મોટેલ"
+        },
+        "tower": {
+                "en": "tower",
+                "hi": "टावर",
+                "gu": "ટાવર"
+        },
+        "villa": {
+                "en": "villa",
+                "hi": "विला",
+                "gu": "વિલા"
+        },
+        "bluff": {
+                "en": "bluff",
+                "hi": "झांसा",
+                "gu": "બ્લફ"
+        },
+        "creek": {
+                "en": "creek",
+                "hi": "क्रीक",
+                "gu": "ખાડી"
+        },
+        "grove": {
+                "en": "grove",
+                "hi": "उपवन",
+                "gu": "ગ્રોવ"
+        },
+        "oasis": {
+                "en": "oasis",
+                "hi": "मरूद्यान",
+                "gu": "ઓએસિસ"
+        },
+        "peak": {
+                "en": "peak",
+                "hi": "शिखर",
+                "gu": "ટોચ"
+        },
+        "reef": {
+                "en": "reef",
+                "hi": "चट्टान",
+                "gu": "રીફ"
+        },
+        "ridge": {
+                "en": "ridge",
+                "hi": "रिज",
+                "gu": "રિજ"
+        },
+        "trail": {
+                "en": "trail",
+                "hi": "निशान",
+                "gu": "પગેરું"
+        },
+        "vale": {
+                "en": "vale",
+                "hi": "घाटी",
+                "gu": "વેલે"
+        },
+        "woods": {
+                "en": "woods",
+                "hi": "जंगल",
+                "gu": "વૂડ્સ"
+        },
+        "flame": {
+                "en": "flame",
+                "hi": "लौ",
+                "gu": "જ્યોત"
+        },
+        "smoke": {
+                "en": "smoke",
+                "hi": "धुआं",
+                "gu": "ધુમાડો"
+        },
+        "spark": {
+                "en": "spark",
+                "hi": "चिंगारी",
+                "gu": "સ્પાર્ક"
+        },
+        "storm": {
+                "en": "storm",
+                "hi": "तूफ़ान",
+                "gu": "તોફાન"
+        },
+        "flood": {
+                "en": "flood",
+                "hi": "बाढ़",
+                "gu": "પૂર"
+        },
+        "frost": {
+                "en": "frost",
+                "hi": "ठंढ",
+                "gu": "હિમ"
+        },
+        "hail": {
+                "en": "hail",
+                "hi": "जय हो",
+                "gu": "કરા"
+        },
+        "gem": {
+                "en": "gem",
+                "hi": "रत्न",
+                "gu": "રત્ન"
+        },
+        "jewel": {
+                "en": "jewel",
+                "hi": "गहना",
+                "gu": "રત્ન"
+        },
+        "ruby": {
+                "en": "ruby",
+                "hi": "माणिक",
+                "gu": "રૂબી"
+        },
+        "topaz": {
+                "en": "topaz",
+                "hi": "पुखराज",
+                "gu": "પોખરાજ"
+        },
+        "amber": {
+                "en": "amber",
+                "hi": "अम्बर",
+                "gu": "એમ્બર"
+        },
+        "opal": {
+                "en": "opal",
+                "hi": "दूधिया पत्थर",
+                "gu": "ઓપલ"
+        },
+        "shirt": {
+                "en": "shirt",
+                "hi": "शर्ट",
+                "gu": "શર્ટ"
+        },
+        "pants": {
+                "en": "pants",
+                "hi": "पैंट",
+                "gu": "પેન્ટ"
+        },
+        "coat": {
+                "en": "coat",
+                "hi": "कोट",
+                "gu": "કોટ"
+        },
+        "dress": {
+                "en": "dress",
+                "hi": "पोशाक",
+                "gu": "વસ્ત્ર"
+        },
+        "skirt": {
+                "en": "skirt",
+                "hi": "स्कर्ट",
+                "gu": "સ્કર્ટ"
+        },
+        "scarf": {
+                "en": "scarf",
+                "hi": "दुपट्टा",
+                "gu": "સ્કાર્ફ"
+        },
+        "glove": {
+                "en": "glove",
+                "hi": "दस्ताना",
+                "gu": "હાથમોજું"
+        },
+        "cube": {
+                "en": "cube",
+                "hi": "घन",
+                "gu": "સમઘન"
+        },
+        "cone": {
+                "en": "cone",
+                "hi": "शंकु",
+                "gu": "શંકુ"
+        },
+        "block": {
+                "en": "block",
+                "hi": "ब्लॉक",
+                "gu": "બ્લોક"
+        },
+        "chess": {
+                "en": "chess",
+                "hi": "शतरंज",
+                "gu": "ચેસ"
+        },
+        "horn": {
+                "en": "horn",
+                "hi": "सींग",
+                "gu": "હોર્ન"
+        },
+        "harp": {
+                "en": "harp",
+                "hi": "वीणा",
+                "gu": "વીણા"
+        },
+        "piano": {
+                "en": "piano",
+                "hi": "पियानो",
+                "gu": "પિયાનો"
+        },
+        "organ": {
+                "en": "organ",
+                "hi": "अंग",
+                "gu": "અંગ"
+        },
+        "prune": {
+                "en": "prune",
+                "hi": "छंटाई",
+                "gu": "કાપણી"
+        },
+        "adult": {
+                "en": "adult",
+                "hi": "वयस्क",
+                "gu": "પુખ્ત"
+        },
+        "anvil": {
+                "en": "anvil",
+                "hi": "निहाई",
+                "gu": "એરણ"
+        },
+        "apron": {
+                "en": "apron",
+                "hi": "एप्रन",
+                "gu": "એપ્રોન"
+        },
+        "arrow": {
+                "en": "arrow",
+                "hi": "तीर",
+                "gu": "તીર"
+        },
+        "badge": {
+                "en": "badge",
+                "hi": "बिल्ला",
+                "gu": "બેજ"
+        },
+        "basin": {
+                "en": "basin",
+                "hi": "बेसिन",
+                "gu": "બેસિન"
+        },
+        "blade": {
+                "en": "blade",
+                "hi": "ब्लेड",
+                "gu": "બ્લેડ"
+        },
+        "board": {
+                "en": "board",
+                "hi": "बोर्ड",
+                "gu": "બોર્ડ"
+        },
+        "bone": {
+                "en": "bone",
+                "hi": "हड्डी",
+                "gu": "અસ્થિ"
+        },
+        "canoe": {
+                "en": "canoe",
+                "hi": "डोंगी",
+                "gu": "નાવડી"
+        },
+        "feast": {
+                "en": "feast",
+                "hi": "दावत",
+                "gu": "તહેવાર"
+        },
+        "pouch": {
+                "en": "pouch",
+                "hi": "थैली",
+                "gu": "પાઉચ"
+        },
+        "scale": {
+                "en": "scale",
+                "hi": "स्केल",
+                "gu": "સ્કેલ"
+        },
+        "beads": {
+                "en": "beads",
+                "hi": "मोती",
+                "gu": "માળા"
+        },
+        "boots": {
+                "en": "boots",
+                "hi": "जूते",
+                "gu": "બૂટ"
+        },
+        "bowls": {
+                "en": "bowls",
+                "hi": "कटोरे",
+                "gu": "બાઉલ"
+        },
+        "carts": {
+                "en": "carts",
+                "hi": "गाड़ियाँ",
+                "gu": "ગાડીઓ"
+        },
+        "coins": {
+                "en": "coins",
+                "hi": "सिक्के",
+                "gu": "સિક્કા"
+        },
+        "cups": {
+                "en": "cups",
+                "hi": "कप",
+                "gu": "કપ"
+        },
+        "dolls": {
+                "en": "dolls",
+                "hi": "गुड़िया",
+                "gu": "ઢીંગલી"
+        },
+        "doors": {
+                "en": "doors",
+                "hi": "दरवाजे",
+                "gu": "દરવાજા"
+        },
+        "drums": {
+                "en": "drums",
+                "hi": "ढोल",
+                "gu": "ડ્રમ"
+        },
+        "flags": {
+                "en": "flags",
+                "hi": "झंडे",
+                "gu": "ધ્વજ"
+        },
+        "forks": {
+                "en": "forks",
+                "hi": "कांटे",
+                "gu": "કાંટો"
+        },
+        "hats": {
+                "en": "hats",
+                "hi": "टोपी",
+                "gu": "ટોપીઓ"
+        },
+        "hooks": {
+                "en": "hooks",
+                "hi": "hooks",
+                "gu": "હુક્સ"
+        },
+        "jars": {
+                "en": "jars",
+                "hi": "जार",
+                "gu": "જાર"
+        },
+        "kites": {
+                "en": "kites",
+                "hi": "kites",
+                "gu": "પતંગ"
+        },
+        "lamps": {
+                "en": "lamps",
+                "hi": "लैंप",
+                "gu": "દીવા"
+        },
+        "locks": {
+                "en": "locks",
+                "hi": "ताले",
+                "gu": "તાળાઓ"
+        },
+        "maps": {
+                "en": "maps",
+                "hi": "मानचित्र",
+                "gu": "નકશા"
+        },
+        "masks": {
+                "en": "masks",
+                "hi": "मुखौटे",
+                "gu": "માસ્ક"
+        },
+        "mats": {
+                "en": "mats",
+                "hi": "मैट",
+                "gu": "સાદડીઓ"
+        },
+        "mugs": {
+                "en": "mugs",
+                "hi": "मग",
+                "gu": "મગ"
+        },
+        "nails": {
+                "en": "nails",
+                "hi": "नाखून",
+                "gu": "નખ"
+        },
+        "nets": {
+                "en": "nets",
+                "hi": "जाल",
+                "gu": "જાળી"
+        },
+        "pans": {
+                "en": "pans",
+                "hi": "धूपदान",
+                "gu": "તવાઓને"
+        },
+        "pens": {
+                "en": "pens",
+                "hi": "कलम",
+                "gu": "પેન"
+        },
+        "pins": {
+                "en": "pins",
+                "hi": "पिन",
+                "gu": "પિન"
+        },
+        "animal": {
+                "en": "animal",
+                "hi": "जानवर",
+                "gu": "પ્રાણી"
+        },
+        "banana": {
+                "en": "banana",
+                "hi": "केला",
+                "gu": "કેળા"
+        },
+        "basket": {
+                "en": "basket",
+                "hi": "टोकरी",
+                "gu": "ટોપલી"
+        },
+        "bottle": {
+                "en": "bottle",
+                "hi": "बोतल",
+                "gu": "બોટલ"
+        },
+        "bridge": {
+                "en": "bridge",
+                "hi": "पुल",
+                "gu": "પુલ"
+        },
+        "camera": {
+                "en": "camera",
+                "hi": "कैमरा",
+                "gu": "કેમેરા"
+        },
+        "candle": {
+                "en": "candle",
+                "hi": "मोमबत्ती",
+                "gu": "મીણબત્તી"
+        },
+        "castle": {
+                "en": "castle",
+                "hi": "महल",
+                "gu": "કિલ્લો"
+        },
+        "cherry": {
+                "en": "cherry",
+                "hi": "चेरी",
+                "gu": "ચેરી"
+        },
+        "circle": {
+                "en": "circle",
+                "hi": "वृत्त",
+                "gu": "વર્તુળ"
+        },
+        "cotton": {
+                "en": "cotton",
+                "hi": "कपास",
+                "gu": "કપાસ"
+        },
+        "dragon": {
+                "en": "dragon",
+                "hi": "ड्रैगन",
+                "gu": "ડ્રેગન"
+        },
+        "flower": {
+                "en": "flower",
+                "hi": "फूल",
+                "gu": "ફૂલ"
+        },
+        "forest": {
+                "en": "forest",
+                "hi": "जंगल",
+                "gu": "જંગલ"
+        },
+        "garden": {
+                "en": "garden",
+                "hi": "बगीचा",
+                "gu": "બગીચો"
+        },
+        "guitar": {
+                "en": "guitar",
+                "hi": "गिटार",
+                "gu": "ગિટાર"
+        },
+        "hammer": {
+                "en": "hammer",
+                "hi": "हथौड़ा",
+                "gu": "હથોડી"
+        },
+        "helmet": {
+                "en": "helmet",
+                "hi": "हेलमेट",
+                "gu": "હેલ્મેટ"
+        },
+        "island": {
+                "en": "island",
+                "hi": "द्वीप",
+                "gu": "ટાપુ"
+        },
+        "jacket": {
+                "en": "jacket",
+                "hi": "जैकेट",
+                "gu": "જેકેટ"
+        },
+        "ladder": {
+                "en": "ladder",
+                "hi": "सीढ़ी",
+                "gu": "નિસરણી"
+        },
+        "laptop": {
+                "en": "laptop",
+                "hi": "लैपटॉप",
+                "gu": "લેપટોપ"
+        },
+        "magnet": {
+                "en": "magnet",
+                "hi": "चुंबक",
+                "gu": "ચુંબક"
+        },
+        "market": {
+                "en": "market",
+                "hi": "बाज़ार",
+                "gu": "બજાર"
+        },
+        "monkey": {
+                "en": "monkey",
+                "hi": "बंदर",
+                "gu": "વાનર"
+        },
+        "orange": {
+                "en": "orange",
+                "hi": "नारंगी",
+                "gu": "નારંગી"
+        },
+        "parrot": {
+                "en": "parrot",
+                "hi": "तोता",
+                "gu": "પોપટ"
+        },
+        "pencil": {
+                "en": "pencil",
+                "hi": "पेंसिल",
+                "gu": "પેન્સિલ"
+        },
+        "pillow": {
+                "en": "pillow",
+                "hi": "तकिया",
+                "gu": "ઓશીકું"
+        },
+        "planet": {
+                "en": "planet",
+                "hi": "ग्रह",
+                "gu": "ગ્રહ"
+        },
+        "rabbit": {
+                "en": "rabbit",
+                "hi": "खरगोश",
+                "gu": "સસલું"
+        },
+        "rocket": {
+                "en": "rocket",
+                "hi": "रॉकेट",
+                "gu": "રોકેટ"
+        },
+        "school": {
+                "en": "school",
+                "hi": "स्कूल",
+                "gu": "શાળા"
+        },
+        "shadow": {
+                "en": "shadow",
+                "hi": "छाया",
+                "gu": "પડછાયો"
+        },
+        "shovel": {
+                "en": "shovel",
+                "hi": "फावड़ा",
+                "gu": "પાવડો"
+        },
+        "silver": {
+                "en": "silver",
+                "hi": "चाँदी",
+                "gu": "ચાંદી"
+        },
+        "spider": {
+                "en": "spider",
+                "hi": "मकड़ी",
+                "gu": "સ્પાઈડર"
+        },
+        "statue": {
+                "en": "statue",
+                "hi": "मूर्ति",
+                "gu": "પ્રતિમા"
+        },
+        "temple": {
+                "en": "temple",
+                "hi": "मंदिर",
+                "gu": "મંદિર"
+        },
+        "tunnel": {
+                "en": "tunnel",
+                "hi": "सुरंग",
+                "gu": "ટનલ"
+        },
+        "window": {
+                "en": "window",
+                "hi": "खिड़की",
+                "gu": "બારી"
+        },
+        "anchor": {
+                "en": "anchor",
+                "hi": "लंगर",
+                "gu": "એન્કર"
+        },
+        "balloon": {
+                "en": "balloon",
+                "hi": "गुब्बारा",
+                "gu": "બલૂન"
+        },
+        "bicycle": {
+                "en": "bicycle",
+                "hi": "साइकिल",
+                "gu": "સાયકલ"
+        },
+        "blanket": {
+                "en": "blanket",
+                "hi": "कम्बल",
+                "gu": "ધાબળો"
+        },
+        "biscuit": {
+                "en": "biscuit",
+                "hi": "बिस्किट",
+                "gu": "બિસ્કીટ"
+        },
+        "cabbage": {
+                "en": "cabbage",
+                "hi": "गोभी",
+                "gu": "કોબી"
+        },
+        "caravan": {
+                "en": "caravan",
+                "hi": "कारवां",
+                "gu": "કાફલો"
+        },
+        "ceiling": {
+                "en": "ceiling",
+                "hi": "छत",
+                "gu": "છત"
+        },
+        "chimney": {
+                "en": "chimney",
+                "hi": "चिमनी",
+                "gu": "ચીમની"
+        },
+        "cricket": {
+                "en": "cricket",
+                "hi": "क्रिकेट",
+                "gu": "ક્રિકેટ"
+        },
+        "diamond": {
+                "en": "diamond",
+                "hi": "हीरा",
+                "gu": "હીરા"
+        },
+        "dolphin": {
+                "en": "dolphin",
+                "hi": "डॉल्फिन",
+                "gu": "ડોલ્ફિન"
+        },
+        "elephant": {
+                "en": "elephant",
+                "hi": "हाथी",
+                "gu": "હાથી"
+        },
+        "feather": {
+                "en": "feather",
+                "hi": "पंख",
+                "gu": "પીછા"
+        },
+        "fireman": {
+                "en": "fireman",
+                "hi": "फायरमैन",
+                "gu": "ફાયરમેન"
+        },
+        "giraffe": {
+                "en": "giraffe",
+                "hi": "जिराफ",
+                "gu": "જિરાફ"
+        },
+        "glasses": {
+                "en": "glasses",
+                "hi": "चश्मा",
+                "gu": "ચશ્મા"
+        },
+        "handbag": {
+                "en": "handbag",
+                "hi": "हैंडबैग",
+                "gu": "હેન્ડબેગ"
+        },
+        "lantern": {
+                "en": "lantern",
+                "hi": "लालटेन",
+                "gu": "ફાનસ"
+        },
+        "leopard": {
+                "en": "leopard",
+                "hi": "तेंदुआ",
+                "gu": "ચિત્તો"
+        },
+        "library": {
+                "en": "library",
+                "hi": "पुस्तकालय",
+                "gu": "પુસ્તકાલય"
+        },
+        "lobster": {
+                "en": "lobster",
+                "hi": "झींगा मछली",
+                "gu": "લોબસ્ટર"
+        },
+        "mailbox": {
+                "en": "mailbox",
+                "hi": "मेलबॉक्स",
+                "gu": "મેઈલબોક્સ"
+        },
+        "necklace": {
+                "en": "necklace",
+                "hi": "हार",
+                "gu": "ગળાનો હાર"
+        },
+        "octopus": {
+                "en": "octopus",
+                "hi": "ऑक्टोपस",
+                "gu": "ઓક્ટોપસ"
+        },
+        "peacock": {
+                "en": "peacock",
+                "hi": "मोर",
+                "gu": "મોર"
+        },
+        "pumpkin": {
+                "en": "pumpkin",
+                "hi": "कद्दू",
+                "gu": "કોળું"
+        },
+        "rainbow": {
+                "en": "rainbow",
+                "hi": "इंद्रधनुष",
+                "gu": "મેઘધનુષ્ય"
+        },
+        "rickshaw": {
+                "en": "rickshaw",
+                "hi": "रिक्शा",
+                "gu": "રિક્ષા"
+        },
+        "scooter": {
+                "en": "scooter",
+                "hi": "स्कूटर",
+                "gu": "સ્કૂટર"
+        },
+        "soldier": {
+                "en": "soldier",
+                "hi": "सैनिक",
+                "gu": "સૈનિક"
+        },
+        "suitcase": {
+                "en": "suitcase",
+                "hi": "सूटकेस",
+                "gu": "સૂટકેસ"
+        },
+        "sweater": {
+                "en": "sweater",
+                "hi": "स्वेटर",
+                "gu": "સ્વેટર"
+        },
+        "teapot": {
+                "en": "teapot",
+                "hi": "चायदानी",
+                "gu": "ચાની કીટલી"
+        },
+        "trumpet": {
+                "en": "trumpet",
+                "hi": "तुरही",
+                "gu": "ટ્રમ્પેટ"
+        },
+        "volcano": {
+                "en": "volcano",
+                "hi": "ज्वालामुखी",
+                "gu": "જ્વાળામુખી"
+        },
+        "waterfall": {
+                "en": "waterfall",
+                "hi": "झरना",
+                "gu": "ધોધ"
+        },
+        "airplane": {
+                "en": "airplane",
+                "hi": "हवाई जहाज",
+                "gu": "વિમાન"
+        },
+        "ambulance": {
+                "en": "ambulance",
+                "hi": "एम्बुलेंस",
+                "gu": "એમ્બ્યુલન્સ"
+        },
+        "butterfly": {
+                "en": "butterfly",
+                "hi": "तितली",
+                "gu": "બટરફ્લાય"
+        },
+        "crocodile": {
+                "en": "crocodile",
+                "hi": "मगरमच्छ",
+                "gu": "મગર"
+        },
+        "dinosaur": {
+                "en": "dinosaur",
+                "hi": "डायनासोर",
+                "gu": "ડાયનાસોર"
+        },
+        "fireplace": {
+                "en": "fireplace",
+                "hi": "चिमनी",
+                "gu": "ફાયરપ્લેસ"
+        },
+        "hamburger": {
+                "en": "hamburger",
+                "hi": "हैमबर्गर",
+                "gu": "હેમબર્ગર"
+        },
+        "helicopter": {
+                "en": "helicopter",
+                "hi": "हेलीकाप्टर",
+                "gu": "હેલિકોપ્ટર"
+        },
+        "kangaroo": {
+                "en": "kangaroo",
+                "hi": "कंगारू",
+                "gu": "કાંગારૂ"
+        },
+        "lightning": {
+                "en": "lightning",
+                "hi": "बिजली",
+                "gu": "વીજળી"
+        },
+        "pineapple": {
+                "en": "pineapple",
+                "hi": "अनानास",
+                "gu": "અનેનાસ"
+        },
+        "sunflower": {
+                "en": "sunflower",
+                "hi": "सूरजमुखी",
+                "gu": "સૂર્યમુખી"
+        },
+        "telescope": {
+                "en": "telescope",
+                "hi": "दूरबीन",
+                "gu": "ટેલિસ્કોપ"
+        },
+        "treasure": {
+                "en": "treasure",
+                "hi": "खज़ाना",
+                "gu": "ખજાનો"
+        },
+        "umbrella": {
+                "en": "umbrella",
+                "hi": "छाता",
+                "gu": "છત્ર"
+        },
+        "vegetable": {
+                "en": "vegetable",
+                "hi": "सब्जी",
+                "gu": "શાકભાજી"
+        },
+        "chocolate": {
+                "en": "chocolate",
+                "hi": "चॉकलेट",
+                "gu": "ચોકલેટ"
+        },
+        "dragonfly": {
+                "en": "dragonfly",
+                "hi": "ड्रैगनफ्लाई",
+                "gu": "ડ્રેગન ફ્લાય"
+        },
+        "jellyfish": {
+                "en": "jellyfish",
+                "hi": "जेलीफ़िश",
+                "gu": "જેલીફિશ"
+        },
+        "microphone": {
+                "en": "microphone",
+                "hi": "माइक्रोफ़ोन",
+                "gu": "માઇક્રોફોન"
+        },
+        "motorcycle": {
+                "en": "motorcycle",
+                "hi": "मोटरसाइकिल",
+                "gu": "મોટરસાઇકલ"
+        }
+};
 
         const translations = {
             en: {
@@ -1222,42 +4346,293 @@
             }
         };
 
-        const words = [
-            "Lotus", "River", "Courage", "Mirror", "Planet",
-            "Wisdom", "Rocket", "Memory", "Forest", "Diamond",
-            "Teacher", "Focus", "Energy", "Victory", "Mountain",
-            "Puzzle", "Champion", "Light", "Future", "Brain"
-        ];
 
-        function enterWebsite() {
+
+        function isRealServerConfigured() {
+            return SHEET_URL && 
+                   SHEET_URL !== "YOUR_GOOGLE_APPS_SCRIPT_URL_HERE" && 
+                   SHEET_URL.startsWith("http");
+        }
+
+        function sendOTP() {
             const nameInput = document.getElementById("nameInput");
-            const phoneInput = document.getElementById("phoneInput");
+            const emailInput = document.getElementById("emailInput");
             const name = nameInput.value.trim();
-            const phone = phoneInput.value.trim();
+            const email = emailInput.value.trim();
+            
+            // Basic reset borders
+            nameInput.style.borderColor = "var(--border)";
+            emailInput.style.borderColor = "var(--border)";
 
             if (name.length < 2) {
-                nameInput.style.border = "1.5px solid var(--red)";
-                nameInput.placeholder = "Please enter your name first";
+                nameInput.style.borderColor = "var(--red)";
+                nameInput.focus();
                 return;
             }
-            if (phone.length < 6) {
-                phoneInput.style.border = "1.5px solid var(--red)";
-                phoneInput.placeholder = "Please enter a valid phone number";
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                emailInput.style.borderColor = "var(--red)";
+                emailInput.focus();
                 return;
             }
 
             userName = name;
-            userPhone = phone;
-            document.getElementById("nameScreen").style.display = "none";
-            document.getElementById("app").classList.add("show");
-            updatePersonalText();
+            userEmail = email;
+
+            const btn = document.querySelector("#initialForm .btn-primary");
+            
+            if (isRealServerConfigured()) {
+                btn.disabled = true;
+                btn.innerText = "Sending Code...";
+                
+                fetch(SHEET_URL, {
+                    method: "POST",
+                    body: JSON.stringify({
+                        action: "sendOTP",
+                        name: userName,
+                        email: userEmail
+                    })
+                })
+                .then(res => res.json())
+                .then(data => {
+                    btn.disabled = false;
+                    btn.innerText = "Enter Website";
+                    
+                    if (data.success) {
+                        transitionToOTPForm();
+                    } else {
+                        alert("Error sending verification code: " + (data.error || "Please check your script configurations."));
+                    }
+                })
+                .catch(err => {
+                    btn.disabled = false;
+                    btn.innerText = "Enter Website";
+                    alert("Failed to connect to the email verification server.");
+                });
+            } else {
+                // FALLBACK: Mock verification for local testing
+                generatedOTP = Math.floor(100000 + Math.random() * 900000).toString();
+                transitionToOTPForm();
+                showSimToast(generatedOTP);
+            }
+        }
+        
+        function transitionToOTPForm() {
+            document.getElementById("initialForm").style.display = "none";
+            const otpForm = document.getElementById("otpForm");
+            otpForm.style.display = "block";
+            document.getElementById("sentEmail").innerText = userEmail;
+            
+            // Clear inputs
+            const otpInputs = document.querySelectorAll(".otp-input");
+            otpInputs.forEach(input => input.value = "");
+            otpInputs[0].focus();
+            
+            // Start resend timer
+            resendTimeout = 30;
+            startOTPTimer();
+        }
+        
+        function startOTPTimer() {
+            const otpTimer = document.getElementById("otpTimer");
+            const resendBtn = document.getElementById("resendBtn");
+            otpTimer.style.display = "inline";
+            resendBtn.style.display = "none";
+            
+            clearInterval(otpTimerInterval);
+            otpTimerInterval = setInterval(() => {
+                resendTimeout--;
+                otpTimer.innerText = `Resend in ${resendTimeout}s`;
+                if (resendTimeout <= 0) {
+                    clearInterval(otpTimerInterval);
+                    otpTimer.style.display = "none";
+                    resendBtn.style.display = "inline";
+                }
+            }, 1000);
+        }
+        
+        function resendOTP() {
+            const resendBtn = document.getElementById("resendBtn");
+            
+            if (isRealServerConfigured()) {
+                resendBtn.style.pointerEvents = "none";
+                resendBtn.style.opacity = "0.5";
+                
+                fetch(SHEET_URL, {
+                    method: "POST",
+                    body: JSON.stringify({
+                        action: "sendOTP",
+                        name: userName,
+                        email: userEmail
+                    })
+                })
+                .then(res => res.json())
+                .then(data => {
+                    resendBtn.style.pointerEvents = "auto";
+                    resendBtn.style.opacity = "1";
+                    if (data.success) {
+                        resendTimeout = 30;
+                        startOTPTimer();
+                    } else {
+                        alert("Error resending code: " + (data.error || "Please check your script configurations."));
+                    }
+                })
+                .catch(err => {
+                    resendBtn.style.pointerEvents = "auto";
+                    resendBtn.style.opacity = "1";
+                    alert("Verification server error.");
+                });
+            } else {
+                generatedOTP = Math.floor(100000 + Math.random() * 900000).toString();
+                showSimToast(generatedOTP);
+                resendTimeout = 30;
+                startOTPTimer();
+            }
+        }
+        
+        function backToForm() {
+            document.getElementById("otpForm").style.display = "none";
+            document.getElementById("initialForm").style.display = "block";
+            clearInterval(otpTimerInterval);
+            hideSimToast();
+        }
+        
+        function verifyOTP() {
+            const otpInputs = document.querySelectorAll(".otp-input");
+            let enteredOTP = "";
+            otpInputs.forEach(input => enteredOTP += input.value);
+            
+            if (enteredOTP.length !== 6) return;
+            
+            const btn = document.querySelector("#otpForm .btn-primary");
+            
+            if (isRealServerConfigured()) {
+                btn.disabled = true;
+                btn.innerText = "Verifying...";
+                
+                fetch(SHEET_URL, {
+                    method: "POST",
+                    body: JSON.stringify({
+                        action: "verifyOTP",
+                        email: userEmail,
+                        otp: enteredOTP
+                    })
+                })
+                .then(res => res.json())
+                .then(data => {
+                    btn.disabled = false;
+                    btn.innerText = "Verify Code";
+                    
+                    if (data.success) {
+                        onOTPSuccess(btn);
+                    } else {
+                        shakeOTPInputs(otpInputs);
+                    }
+                })
+                .catch(err => {
+                    btn.disabled = false;
+                    btn.innerText = "Verify Code";
+                    alert("Connection failed. Please check your verification server.");
+                });
+            } else {
+                if (enteredOTP === generatedOTP) {
+                    onOTPSuccess(btn);
+                } else {
+                    shakeOTPInputs(otpInputs);
+                }
+            }
+        }
+        
+        function onOTPSuccess(btn) {
+            hideSimToast();
+            clearInterval(otpTimerInterval);
+            
+            btn.innerText = "Verified! ✔";
+            btn.style.background = "var(--green)";
+            
+            setTimeout(() => {
+                document.getElementById("nameScreen").style.opacity = "0";
+                document.getElementById("nameScreen").style.transform = "scale(0.95)";
+                setTimeout(() => {
+                    document.getElementById("nameScreen").style.display = "none";
+                    document.getElementById("app").classList.add("show");
+                    updatePersonalText();
+                }, 300);
+            }, 800);
+        }
+        
+        function shakeOTPInputs(otpInputs) {
+            otpInputs.forEach(input => {
+                input.style.borderColor = "var(--red)";
+                input.style.background = "#fff1f2";
+                setTimeout(() => {
+                    input.style.borderColor = "var(--border)";
+                    input.style.background = "var(--bg)";
+                }, 1500);
+            });
+            otpInputs[0].focus();
+        }
+        
+        function showSimToast(code) {
+            const toast = document.getElementById("toastSim");
+            document.getElementById("toastCode").innerText = code;
+            toast.classList.add("show");
+            
+            // Auto hide after 12 seconds
+            setTimeout(() => {
+                if (document.getElementById("toastCode").innerText === code) {
+                    hideSimToast();
+                }
+            }, 12000);
+        }
+        
+        function hideSimToast() {
+            document.getElementById("toastSim").classList.remove("show");
+        }
+        
+        function copySimCode() {
+            const code = document.getElementById("toastCode").innerText;
+            navigator.clipboard.writeText(code).then(() => {
+                const btn = document.querySelector(".toast-sim-btn");
+                btn.innerText = "Copied!";
+                setTimeout(() => btn.innerText = "Copy", 1500);
+                
+                // Autofill the OTP inputs!
+                const otpInputs = document.querySelectorAll(".otp-input");
+                for (let i = 0; i < code.length; i++) {
+                    if (otpInputs[i]) otpInputs[i].value = code[i];
+                }
+                otpInputs[5].focus();
+            });
+        }
+        
+        function moveToNext(input, index) {
+            // Keep only numbers or digits
+            input.value = input.value.replace(/[^0-9]/g, "");
+            if (input.value.length === 1 && index < 5) {
+                document.querySelectorAll(".otp-input")[index + 1].focus();
+            }
+            
+            // Check if all fields are filled, then automatically call verify
+            const otpInputs = document.querySelectorAll(".otp-input");
+            let filled = true;
+            otpInputs.forEach(inp => { if (!inp.value) filled = false; });
+            if (filled) verifyOTP();
+        }
+        
+        function moveBack(input, index) {
+            if (event && event.key === "Backspace" && !input.value && index > 0) {
+                const prev = document.querySelectorAll(".otp-input")[index - 1];
+                prev.focus();
+                prev.value = "";
+            }
         }
 
         document.getElementById("nameInput").addEventListener("keydown", function (e) {
-            if (e.key === "Enter") document.getElementById("phoneInput").focus();
+            if (e.key === "Enter") document.getElementById("emailInput").focus();
         });
-        document.getElementById("phoneInput").addEventListener("keydown", function (e) {
-            if (e.key === "Enter") enterWebsite();
+        document.getElementById("emailInput").addEventListener("keydown", function (e) {
+            if (e.key === "Enter") sendOTP();
         });
 
         function updatePersonalText() {
@@ -1268,7 +4643,21 @@
                 `${translations[currentLang].mentorGreeting} ${userName}, give your best!`;
 
             document.getElementById("regName").value = userName;
-            document.getElementById("regPhone").value = userPhone;
+            document.getElementById("regEmail").value = userEmail;
+        }
+
+        function renderTestWords() {
+            const wordList = document.getElementById("wordList");
+            wordList.innerHTML = "";
+            currentTestKeys.forEach((key, index) => {
+                const div = document.createElement("div");
+                div.className = "word";
+                div.style.animationDelay = `${index * 0.035}s`;
+                const wordObj = wordBank[key];
+                const translatedWord = wordObj[currentLang] || wordObj["en"];
+                div.innerText = `${index + 1}. ${translatedWord}`;
+                wordList.appendChild(div);
+            });
         }
 
         function setLanguage(lang, button) {
@@ -1286,6 +4675,12 @@
             });
 
             updatePersonalText();
+            
+            // Re-render word list in new language if test is active
+            const wordList = document.getElementById("wordList");
+            if (wordList && wordList.style.display === "grid" && currentTestKeys.length > 0) {
+                renderTestWords();
+            }
         }
 
         function scrollToRules() {
@@ -1317,13 +4712,16 @@
             registerBox.classList.remove("show");
             document.getElementById("userAnswer").value = "";
 
-            words.forEach((word, index) => {
-                const div = document.createElement("div");
-                div.className = "word";
-                div.style.animationDelay = `${index * 0.035}s`;
-                div.innerText = `${index + 1}. ${word}`;
-                wordList.appendChild(div);
-            });
+            // Pick 20 unique random keys from wordBank
+            const allKeys = Object.keys(wordBank);
+            currentTestKeys = [];
+            const tempKeys = [...allKeys];
+            while (currentTestKeys.length < 20 && tempKeys.length > 0) {
+                const randIndex = Math.floor(Math.random() * tempKeys.length);
+                currentTestKeys.push(tempKeys.splice(randIndex, 1)[0]);
+            }
+
+            renderTestWords();
 
             timeLeft = 45;
             document.getElementById("timer").innerText = timeLeft;
@@ -1354,13 +4752,18 @@
 
             let correct = 0;
 
-            for (let i = 0; i < words.length; i++) {
-                if (userWords[i] && userWords[i] === words[i].toLowerCase()) {
+            for (let i = 0; i < currentTestKeys.length; i++) {
+                const key = currentTestKeys[i];
+                const wordObj = wordBank[key];
+                const translatedWord = (wordObj[currentLang] || wordObj["en"]).toLowerCase().trim();
+                const englishWord = wordObj["en"].toLowerCase().trim();
+                
+                if (userWords[i] && (userWords[i] === translatedWord || userWords[i] === englishWord)) {
                     correct++;
                 }
             }
 
-            const score = Math.round((correct / words.length) * 100);
+            const score = Math.round((correct / currentTestKeys.length) * 100);
             lastScore = score;
             const resultBox = document.getElementById("resultBox");
             const registerBox = document.getElementById("registerBox");
@@ -1390,12 +4793,19 @@
                 return;
             }
 
+            if (!isRealServerConfigured()) {
+                statusEl.style.color = "var(--gold-dark)";
+                statusEl.textContent = "⚠️ No server configured yet. Please set up your Google Apps Script URL in SHEET_URL.";
+                return;
+            }
+
             btn.disabled = true;
             btn.textContent = "Submitting...";
             statusEl.style.color = "var(--text-muted)";
             statusEl.textContent = "Sending your data...";
 
             const payload = {
+                action: "register",
                 timestamp: new Date().toLocaleString(),
                 name: name,
                 email: email,
@@ -1406,16 +4816,22 @@
 
             fetch(SHEET_URL, {
                 method: "POST",
-                mode: "no-cors",
-                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(payload)
             })
-            .then(() => {
-                btn.textContent = "Submitted!";
-                btn.style.background = "var(--green)";
-                btn.style.boxShadow = "0 6px 20px rgba(16,185,129,0.3)";
-                statusEl.style.color = "var(--green)";
-                statusEl.textContent = "Registration submitted successfully!";
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    btn.textContent = "Submitted! ✔";
+                    btn.style.background = "var(--green)";
+                    btn.style.boxShadow = "0 6px 20px rgba(16,185,129,0.3)";
+                    statusEl.style.color = "var(--green)";
+                    statusEl.textContent = "Registration submitted successfully! 🎉";
+                } else {
+                    btn.disabled = false;
+                    btn.textContent = "Submit Registration";
+                    statusEl.style.color = "var(--red)";
+                    statusEl.textContent = "Submission failed: " + (data.error || "Unknown error.");
+                }
             })
             .catch(() => {
                 btn.disabled = false;
